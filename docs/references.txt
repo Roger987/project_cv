@@ -1,0 +1,2 @@
+https://docs.opencv.org/4.x/d8/dfe/classcv_1_1VideoCapture.html
+https://learnopencv.com/read-write-and-display-a-video-using-opencv-cpp-python/
