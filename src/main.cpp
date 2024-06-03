@@ -6,6 +6,8 @@
 #include <iostream>
 #include <stdio.h>
 
+#include "detect_table.h"
+
 using namespace cv;
 using namespace std;
 
@@ -26,6 +28,8 @@ int main(int argc, char** argv){
     Mat first_frame;
     cap.read(first_frame);
 
+    Mat table(first_frame.rows, first_frame.cols, CV_8UC3);
+    detectTable(first_frame, first_frame);
     imshow("First frame", first_frame);
     waitKey(0);
  
