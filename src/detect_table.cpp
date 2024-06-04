@@ -1,9 +1,5 @@
-// #include <opencv2/highgui.hpp>
-// #include <opencv2/core.hpp>
-// #include <opencv2/imgproc.hpp>
-// #include <opencv2/videoio.hpp>
-
-#include "functions.h"
+//#include "functions.h"
+#include "detect_table.h"
 
 struct Pixel {
     int x, y;
@@ -99,7 +95,7 @@ cv::Mat regionGrowing(const cv::Mat image, cv::Vec3b color) {
             break;
         }
     }
-    std::cout<<first_pixel_x<<std::endl;
+    //std::cout<<first_pixel_x<<std::endl;
     // itera su tutti ipixel dell'immagine
                 std::queue<Pixel> q;
     q.push(Pixel(first_pixel_y, first_pixel_x));
@@ -133,7 +129,7 @@ cv::Mat regionGrowing(const cv::Mat image, cv::Vec3b color) {
         for (int j = 0; j < image.rows; ++j) {
             if (classes[j][i]==-1){
                 //std::cout<<"Done untill image ";
-                output_image.at<cv::Vec3b>(j, i)=(0,0,0);
+                output_image.at<cv::Vec3b>(j, i)={0,0,0};
             }
         }
     }    
@@ -149,6 +145,7 @@ void detectTable(cv::Mat& src, cv::Mat& output){
     cv::Mat cropped_image = src(roi);
     cv::Vec3b table_color = mostFrequentColorWithThreshold(cropped_image, 100);
     cv::Mat output_img = regionGrowing(src, table_color);
-    cv::imshow("Output", output_img);
-    cv::waitKey(0);
+    output = output_img;
+    // cv::imshow("Output", output_img);
+    // cv::waitKey(0);
 }

@@ -7,6 +7,8 @@
 #include <stdio.h>
 
 #include "detect_table.h"
+#include "table_corners.h"
+#include "detect_contours.h"
 
 using namespace cv;
 using namespace std;
@@ -25,32 +27,41 @@ int main(int argc, char** argv){
         return -1;
     }
 
+    // Get the first frame of the video
     Mat first_frame;
     cap.read(first_frame);
+    blur(first_frame, first_frame, cv::Size(9,9));
 
-    Mat table(first_frame.rows, first_frame.cols, CV_8UC3);
+    // Uses region growing to detect the table area
     detectTable(first_frame, first_frame);
-    imshow("First frame", first_frame);
-    waitKey(0);
+    
+    // Gets the corners of the table based on the detected table region
+    vector<vector<Point>> corners = tableCorners(first_frame);
+
+    // Gets the contours of the table
+    vector<vector<Point>> contours = detectContours(first_frame.rows, first_frame.cols, corners);
  
-    // while(1){
+    while(1){
  
-    //     Mat frame;
-    //     cap >> frame;
-    //     if (frame.empty()){
-    //         break;
-    //     }
+        Mat frame;
+        cap >> frame;
+        if (frame.empty()){
+            break;
+        }
     
-    //     imshow( "Frame", frame );
+        fillPoly(frame, corners, cv::Scalar(49, 124, 76));
+        drawContours(frame, contours, -1, Scalar(0, 255, 255), 2);
+        
+        imshow( "Frame", frame );
     
-    //     char c = (char)waitKey(25); 
-    //     if(c==27){ // esc to exit video
-    //         break;
-    //     }
-    // }
+        char c = (char) waitKey(25); 
+        if(c==27){ // esc to exit video
+            break;
+        }
+    }
     
-    // cap.release();
-    // destroyAllWindows();
+    cap.release();
+    destroyAllWindows();
 
     return 0;
 }
