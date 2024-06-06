@@ -9,6 +9,7 @@
 #include "detect_table.h"
 #include "table_corners.h"
 #include "detect_contours.h"
+#include "detect_balls.hpp"
 
 using namespace cv;
 using namespace std;
@@ -28,8 +29,9 @@ int main(int argc, char** argv){
     }
 
     // Get the first frame of the video
-    Mat first_frame;
+    Mat first_frame, src;
     cap.read(first_frame);
+    first_frame.copyTo(src);
     blur(first_frame, first_frame, cv::Size(9,9));
 
     // Uses region growing to detect the table area
@@ -40,6 +42,11 @@ int main(int argc, char** argv){
 
     // Gets the contours of the table
     vector<vector<Point>> contours = detectContours(first_frame.rows, first_frame.cols, corners);
+
+    // Creates a mask to isolate the table area in order to facilitate the objects detection
+    Mat mask = Mat::zeros(src.size(), CV_8UC3);
+    drawContours(mask, contours, -1, cv::Scalar(255,255,255), FILLED);
+    Mat cropped = Mat::zeros(src.size(), CV_8UC3);
  
     while(1){
  
@@ -49,10 +56,13 @@ int main(int argc, char** argv){
             break;
         }
     
-        fillPoly(frame, corners, cv::Scalar(49, 124, 76));
+        //fillPoly(frame, corners, cv::Scalar(49, 124, 76));
         drawContours(frame, contours, -1, Scalar(0, 255, 255), 2);
+
+        frame.copyTo(cropped, mask);
+        detectBalls(cropped, frame);
         
-        imshow( "Frame", frame );
+        imshow("Frame", frame);
     
         char c = (char) waitKey(25); 
         if(c==27){ // esc to exit video
@@ -60,8 +70,8 @@ int main(int argc, char** argv){
         }
     }
     
-    cap.release();
-    destroyAllWindows();
+    // cap.release();
+    // destroyAllWindows();
 
     return 0;
 }
