@@ -7,4 +7,8 @@
 
 std::vector<cv::Vec3f> detectBalls(cv::Mat& src, cv::Mat& output);
 
+void delete_redundant_balls(std::vector<cv::Vec3f>& obj);
+
+void print_bbox(cv::Vec3f& obj, cv::Mat& output);
+
 #endif 

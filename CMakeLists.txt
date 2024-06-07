@@ -1,6 +1,9 @@
-cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.8)
 
 project(project_cv VERSION 1.0 LANGUAGES CXX)
+
+# Set the path to OpenCV extra modules
+set(OPENCV_EXTRA_MODULES_PATH ../opencv_contrib/modules)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(include)
