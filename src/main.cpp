@@ -47,6 +47,7 @@ int main(int argc, char** argv){
     Mat mask = Mat::zeros(src.size(), CV_8UC3);
     drawContours(mask, contours, -1, cv::Scalar(255,255,255), FILLED);
     Mat cropped = Mat::zeros(src.size(), CV_8UC3);
+    //std::vector<cv::Vec3f> balls = detectBalls(cropped, first_frame);
  
     while(1){
  
@@ -55,23 +56,27 @@ int main(int argc, char** argv){
         if (frame.empty()){
             break;
         }
-    
         //fillPoly(frame, corners, cv::Scalar(49, 124, 76));
         drawContours(frame, contours, -1, Scalar(0, 255, 255), 2);
+        
 
         frame.copyTo(cropped, mask);
-        detectBalls(cropped, frame);
+        //Detect balls
+        std::vector<cv::Vec3f> balls = detectBalls(cropped);
+
+        //Print the bounding box of each detected balls
+        for(auto& ball : balls)
+            print_bbox(ball, frame);
         
         imshow("Frame", frame);
-    
         char c = (char) waitKey(25); 
         if(c==27){ // esc to exit video
             break;
         }
     }
     
-    // cap.release();
-    // destroyAllWindows();
+    cap.release();
+    destroyAllWindows();
 
     return 0;
 }

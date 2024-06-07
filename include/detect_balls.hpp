@@ -5,7 +5,7 @@
 #include <opencv2/video/tracking.hpp>
 
 
-std::vector<cv::Vec3f> detectBalls(cv::Mat& src, cv::Mat& output);
+std::vector<cv::Vec3f> detectBalls(cv::Mat& src);
 
 void delete_redundant_balls(std::vector<cv::Vec3f>& obj);
 
