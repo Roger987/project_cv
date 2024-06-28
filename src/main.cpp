@@ -55,12 +55,13 @@ int main(int argc, char** argv){
         if (frame.empty()){
             break;
         }
-    
+
         //fillPoly(frame, corners, cv::Scalar(49, 124, 76));
-        drawContours(frame, contours, -1, Scalar(0, 255, 255), 2);
 
         frame.copyTo(cropped, mask);
         detectBalls(cropped, frame);
+        
+        drawContours(frame, contours, -1, Scalar(0, 255, 255), 2);
         
         imshow("Frame", frame);
     
