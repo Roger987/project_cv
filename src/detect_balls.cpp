@@ -59,7 +59,8 @@ int histogram_cal(cv::Mat img){
     cv::Mat hist;
     cv::calcHist( &gray, 1, 0, cv::Mat(), hist, 1, &histSize, histRange, true, false);
 
-    int hist_w = 512, hist_h = 400;
+    //int hist_w = 512, hist_h = 400;
+    int hist_w = 256, hist_h = 400;
     int bin_w = cvRound( (double) hist_w/histSize );
 
     cv::Mat histImage( hist_h, hist_w, CV_8UC1, cv::Scalar(0) );
@@ -71,13 +72,17 @@ int histogram_cal(cv::Mat img){
 
     double max_entropy = - std::log2(1.0/256.0);
     //std::cout << 100*calculateEntropy(hist)/8.0 << std::endl;
-    if (calculateEntropy(hist) >= 0.7*max_entropy) {
-        
+    if (calculateEntropy(hist) >= 0.6*max_entropy){
+        //Balls with stripes
         if(whitePercentage >= 5 && whitePercentage <= 20){
             return 1;
-        } else if (whitePercentage > 20) {
+        }
+        //White ball
+        else if (whitePercentage > 20) {
             return 2;
-        } else {
+        } 
+        //balls with solid colors + black one
+        else {
             return 3;
         }  
     } else {
@@ -96,6 +101,7 @@ std::vector<cv::Vec3f> detectBalls(cv::Mat& src, cv::Mat& output){
     HoughCircles(src, circles, cv::HOUGH_GRADIENT, 1, 10, 150, 10, 7, 15);
 
     std::vector<cv::Vec3f> detected_balls;
+    std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int>> class_two_balls;
 
     for(int i = 0; i < circles.size(); i++){
         //c[0] = x coor, c[1] = y coor, c[2] = radius
@@ -115,7 +121,8 @@ std::vector<cv::Vec3f> detectBalls(cv::Mat& src, cv::Mat& output){
             //circle radius
             float radius = c[2]; 
             cv::Point2i top_left(c[0]-radius, c[1]-radius);
-            cv::Point2i bottom_right(c[0]+radius, c[1]+radius);
+            //cv::Point2i bottom_right(c[0]+radius, c[1]+radius);
+            cv::Point2i bottom_right(c[0]+10, c[1]+10);
 
             cv::Rect ball_square(c[0]-radius, c[1]-radius,bottom_right.x - top_left.x, bottom_right.y - top_left.y);
             // cv::Mat ball_detected = output(ball_square);
@@ -127,9 +134,10 @@ std::vector<cv::Vec3f> detectBalls(cv::Mat& src, cv::Mat& output){
             // std::cout << class_ball << std::endl;
             if (class_ball != -1){
                 if (class_ball == 1){
-                    cv::rectangle(output, top_left, bottom_right, cv::Scalar(0,0,255), 2);
+                    cv::rectangle(output, top_left, bottom_right, cv::Scalar(255,255,255), 2);
                 } else if (class_ball == 2) {
-                    cv::rectangle(output, top_left, bottom_right, cv::Scalar(255,0,0), 2);
+                    class_two_balls.push_back(std::make_tuple(ball_square, top_left, bottom_right, 0));
+                    //cv::rectangle(output, top_left, bottom_right, cv::Scalar(255,0,0), 2);
                 }  else if (class_ball == 3) {
                     cv::rectangle(output, top_left, bottom_right, cv::Scalar(0,255,0), 2);
                 }
@@ -142,6 +150,36 @@ std::vector<cv::Vec3f> detectBalls(cv::Mat& src, cv::Mat& output){
             // detected_balls.push_back(c);
         }   
     }
+
+    // cv::Mat gray;
+    // cv::cvtColor(img, gray, cv::COLOR_BGR2GRAY);
+
+    // cv::Mat thresh;
+    // cv::threshold(gray, thresh, 200, 255, cv::THRESH_BINARY);
+    // // cv::imshow("ball1", thresh);
+    // // cv::waitKey(0);
+
+    // int whitePixelCount = cv::countNonZero(thresh);
+
+    // for(int i=0; i<class_two_balls.size(); i++){
+    //     class_two_balls[i][2];
+    // }
+    // Now you can use the class_two_balls vector as needed
+    for (auto& ball_info : class_two_balls) {
+        cv::Mat gray;
+        cv::Mat thresh;
+        cv::cvtColor(output(std::get<0>(ball_info)), gray, cv::COLOR_BGR2GRAY);
+        cv::imshow("ball", thresh);
+        cv::waitKey(0);
+
+        cv::threshold(gray, thresh, 200, 255, cv::THRESH_BINARY);
+        std::get<3>(ball_info) = cv::countNonZero(thresh);
+    }
+
+    // Sort the vector based on the fourth element
+    std::sort(class_two_balls.begin(), class_two_balls.end(), [](const auto& a, const auto& b) {
+        return std::get<3>(a) < std::get<3>(b);
+    });
 
     return detected_balls;
 }
