@@ -61,8 +61,8 @@ int main(int argc, char** argv){
         frame.copyTo(cropped, mask);
         detectBalls(cropped, frame);
         
-        //drawContours(frame, contours, -1, Scalar(0, 255, 255), 2);
-        drawContours(cropped, contours, -1, Scalar(0, 255, 255), 2);
+        drawContours(frame, contours, -1, Scalar(0, 255, 255), 2);
+        //drawContours(cropped, contours, -1, Scalar(0, 255, 255), 2);
         
         imshow("Frame", frame);
     

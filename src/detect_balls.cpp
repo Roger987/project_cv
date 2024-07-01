@@ -46,10 +46,10 @@ int histogram_cal(cv::Mat img){
     double whitePercentage = (static_cast<double>(whitePixelCount) / totalPixels) * 100;
 
     // Print the result
-    if (whitePercentage > 20){
+    if (whitePercentage > 15){
         std::cout << "Number of White pixels: " << whitePixelCount << " " << whitePercentage << std::endl;
         cv::imshow("ball1", img);
-        cv::waitKey(0);
+        //cv::waitKey(0);
     }
     // std::cout << "Number of White pixels: " << whitePixelCount << " " << whitePercentage << std::endl;
 
@@ -74,11 +74,11 @@ int histogram_cal(cv::Mat img){
     //std::cout << 100*calculateEntropy(hist)/8.0 << std::endl;
     if (calculateEntropy(hist) >= 0.6*max_entropy){
         //Balls with stripes
-        if(whitePercentage >= 5 && whitePercentage <= 20){
+        if(whitePercentage >= 5 && whitePercentage <= 15){
             return 1;
         }
         //White ball
-        else if (whitePercentage > 20) {
+        else if (whitePercentage > 15) {
             return 2;
         } 
         //balls with solid colors + black one
@@ -101,7 +101,8 @@ std::vector<cv::Vec3f> detectBalls(cv::Mat& src, cv::Mat& output){
     HoughCircles(src, circles, cv::HOUGH_GRADIENT, 1, 10, 150, 10, 7, 15);
 
     std::vector<cv::Vec3f> detected_balls;
-    std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int>> class_two_balls;
+    std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int>> white_balls;
+    std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int>> solid_balls;
 
     for(int i = 0; i < circles.size(); i++){
         //c[0] = x coor, c[1] = y coor, c[2] = radius
@@ -117,7 +118,7 @@ std::vector<cv::Vec3f> detectBalls(cv::Mat& src, cv::Mat& output){
             //std::cout<<"Pass"<<mean<<std::endl;
             cv::Point center = cv::Point(c[0], c[1]);
             //circle certer
-            circle(output, center, 1, cv::Scalar(0,100,100));
+            //circle(output, center, 1, cv::Scalar(0,100,100));
             //circle radius
             float radius = c[2]; 
             cv::Point2i top_left(c[0]-radius, c[1]-radius);
@@ -133,14 +134,12 @@ std::vector<cv::Vec3f> detectBalls(cv::Mat& src, cv::Mat& output){
             int class_ball = histogram_cal(output(ball_square));
             // std::cout << class_ball << std::endl;
             if (class_ball != -1){
-                if (class_ball == 1){
-                    cv::rectangle(output, top_left, bottom_right, cv::Scalar(255,255,255), 2);
-                } else if (class_ball == 2) {
-                    class_two_balls.push_back(std::make_tuple(ball_square, top_left, bottom_right, 0));
-                    //cv::rectangle(output, top_left, bottom_right, cv::Scalar(255,0,0), 2);
-                }  else if (class_ball == 3) {
-                    cv::rectangle(output, top_left, bottom_right, cv::Scalar(0,255,0), 2);
-                }
+                if (class_ball == 1)
+                    cv::rectangle(output, top_left, bottom_right, cv::Scalar(0,0,255), 2);
+                else if (class_ball == 2)
+                    white_balls.push_back(std::make_tuple(ball_square, top_left, bottom_right, 0));
+                else if (class_ball == 3)
+                    solid_balls.push_back(std::make_tuple(ball_square, top_left, bottom_right, 0));
                 //Save detected balls
                 detected_balls.push_back(c);
             }
@@ -151,35 +150,61 @@ std::vector<cv::Vec3f> detectBalls(cv::Mat& src, cv::Mat& output){
         }   
     }
 
-    // cv::Mat gray;
-    // cv::cvtColor(img, gray, cv::COLOR_BGR2GRAY);
+    cv::Mat gray;
+    cv::Mat thresh;
+    //detect the single white ball
+    if(white_balls.size()>0){
+        for (auto& ball_info : white_balls) {
+            
+            cv::cvtColor(output(std::get<0>(ball_info)), gray, cv::COLOR_BGR2GRAY);
+            //cv::imshow("ball", thresh);
+            //cv::waitKey(0);
 
-    // cv::Mat thresh;
-    // cv::threshold(gray, thresh, 200, 255, cv::THRESH_BINARY);
-    // // cv::imshow("ball1", thresh);
-    // // cv::waitKey(0);
+            cv::threshold(gray, thresh, 240, 255, cv::THRESH_BINARY);
+            std::get<3>(ball_info) = cv::countNonZero(thresh);
+        }
 
-    // int whitePixelCount = cv::countNonZero(thresh);
+        // Sort the vector based on the fourth element
+        std::sort(white_balls.begin(), white_balls.end(), [](const std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int>& a, const std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int>& b) {
+            return std::get<3>(a) > std::get<3>(b);
+        });
 
-    // for(int i=0; i<class_two_balls.size(); i++){
-    //     class_two_balls[i][2];
-    // }
-    // Now you can use the class_two_balls vector as needed
-    for (auto& ball_info : class_two_balls) {
-        cv::Mat gray;
-        cv::Mat thresh;
-        cv::cvtColor(output(std::get<0>(ball_info)), gray, cv::COLOR_BGR2GRAY);
-        cv::imshow("ball", thresh);
-        cv::waitKey(0);
+        //plot the bounding box of the white ball
+        cv::rectangle(output, std::get<1>(white_balls[0]), std::get<2>(white_balls[0]), cv::Scalar(255,255,255), 2);
 
-        cv::threshold(gray, thresh, 200, 255, cv::THRESH_BINARY);
-        std::get<3>(ball_info) = cv::countNonZero(thresh);
+        //for the others, plot the bounding boxes of the balls with stripes
+        for (size_t i = 1; i < white_balls.size(); ++i)
+            cv::rectangle(output, std::get<1>(white_balls[i]), std::get<2>(white_balls[i]), cv::Scalar(0,0,255), 2);
+
+        //cv::waitKey(0);
     }
 
-    // Sort the vector based on the fourth element
-    std::sort(class_two_balls.begin(), class_two_balls.end(), [](const auto& a, const auto& b) {
-        return std::get<3>(a) < std::get<3>(b);
-    });
+    //detect the black ball
+    if(solid_balls.size()>0){
+        for (auto& ball_info : solid_balls) {
+            cv::cvtColor(output(std::get<0>(ball_info)), gray, cv::COLOR_BGR2GRAY);
+            //cv::imshow("ball", thresh);
+            //cv::waitKey(0);
+
+            cv::threshold(gray, thresh, 20, 255, cv::THRESH_BINARY_INV);
+            std::get<3>(ball_info) = cv::countNonZero(thresh);
+        }
+
+        // Sort the vector based on the fourth element
+        std::sort(solid_balls.begin(), solid_balls.end(), [](const std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int>& a, const std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int>& b) {
+            return std::get<3>(a) > std::get<3>(b);
+        });
+
+        std::cout<<"New image"<<std::endl;
+        // for(auto& ball : solid_balls)
+        //     std::cout<<std::get<3>(ball)<<std::endl;
+
+        //plot the bounding box of the white ball
+        cv::rectangle(output, std::get<1>(solid_balls[0]), std::get<2>(solid_balls[0]), cv::Scalar(0,0,0), 2);
+
+        for (size_t i = 1; i < solid_balls.size(); ++i)
+            cv::rectangle(output, std::get<1>(solid_balls[i]), std::get<2>(solid_balls[i]), cv::Scalar(255,127,0), 2);
+    }
 
     return detected_balls;
 }
