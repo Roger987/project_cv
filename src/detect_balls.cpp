@@ -149,20 +149,28 @@ std::vector<cv::Vec3f> detectBalls(cv::Mat& img, cv::Mat& output, int segmentati
                 //Save detected balls
                 detected_balls.push_back(c);
             }
-            // cv::rectangle(output, top_left, bottom_right, cv::Scalar(255,0,255), 2);
-
-            // //Save detected balls
-            // detected_balls.push_back(c);
         }   
     }
 
+    //detect the single white ball
+    if(white_balls.size()>0)
+        detectWhiteBall(white_balls, segmentation, img, output);
+    
+    //detect the black ball
+    if(solid_balls.size()>0)
+        detectBlackBall(solid_balls, segmentation, img, output);
+
+    return detected_balls;
+}
+
+
+
+void detectWhiteBall(std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int>>& white_balls, int& segmentation, cv::Mat& img, cv::Mat& output){
     cv::Mat gray;
     cv::Mat thresh;
     //detect the single white ball
     if(white_balls.size()>0){
         for (auto& ball_info : white_balls) {
-            
-            //cv::cvtColor(output(std::get<0>(ball_info)), gray, cv::COLOR_BGR2GRAY);
             cv::cvtColor(img(std::get<0>(ball_info)), gray, cv::COLOR_BGR2GRAY);
             //cv::imshow("ball", thresh);
             //cv::waitKey(0);
@@ -189,16 +197,16 @@ std::vector<cv::Vec3f> detectBalls(cv::Mat& img, cv::Mat& output, int segmentati
             for (size_t i = 1; i < white_balls.size(); ++i)
                 cv::rectangle(output, std::get<1>(white_balls[i]), std::get<2>(white_balls[i]), cv::Scalar(0,0,255), 2);
         }
-            
-
-        
-
         //cv::waitKey(0);
     }
+}
 
-    //detect the black ball
-    if(solid_balls.size()>0){
-        for (auto& ball_info : solid_balls) {
+
+void detectBlackBall(std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int>>& solid_balls, int& segmentation, cv::Mat& img, cv::Mat& output){
+    cv::Mat gray;
+    cv::Mat thresh;
+    
+    for (auto& ball_info : solid_balls) {
             // cv::cvtColor(output(std::get<0>(ball_info)), gray, cv::COLOR_BGR2GRAY);
             cv::cvtColor(img(std::get<0>(ball_info)), gray, cv::COLOR_BGR2GRAY);
             //cv::imshow("ball", thresh);
@@ -229,54 +237,4 @@ std::vector<cv::Vec3f> detectBalls(cv::Mat& img, cv::Mat& output, int segmentati
             for (size_t i = 1; i < solid_balls.size(); ++i)
                 cv::rectangle(output, std::get<1>(solid_balls[i]), std::get<2>(solid_balls[i]), cv::Scalar(255,127,0), 2);
         }
-
-        
-        
-    }
-
-    return detected_balls;
 }
-
-
-
-// void detectWhiteBall(std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int>>& white_balls, int& segmentation, cv::Mat& output){
-//     cv::Mat gray;
-//     cv::Mat thresh;
-//     //detect the single white ball
-//     if(white_balls.size()>0){
-//         for (auto& ball_info : white_balls) {
-            
-//             //cv::cvtColor(output(std::get<0>(ball_info)), gray, cv::COLOR_BGR2GRAY);
-//             cv::cvtColor(img(std::get<0>(ball_info)), gray, cv::COLOR_BGR2GRAY);
-//             //cv::imshow("ball", thresh);
-//             //cv::waitKey(0);
-
-//             cv::threshold(gray, thresh, 240, 255, cv::THRESH_BINARY);
-//             std::get<3>(ball_info) = cv::countNonZero(thresh);
-//         }
-
-//         // Sort the vector based on the fourth element
-//         std::sort(white_balls.begin(), white_balls.end(), [](const std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int>& a, const std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int>& b) {
-//             return std::get<3>(a) > std::get<3>(b);
-//         });
-
-//         //plot the bounding box of the white ball
-//         if(segmentation){
-//             cv::circle(output, cv::Point2i(std::get<2>(white_balls[0]).x-5, std::get<2>(white_balls[0]).y-5), 10, cv::Scalar(255,255,255),cv::FILLED);
-//             //for the others, plot the segmented balls with stripes
-//             for (size_t i = 1; i < white_balls.size(); ++i)
-//                 cv::circle(output, cv::Point2i(std::get<2>(white_balls[i]).x-5, std::get<2>(white_balls[i]).y-5), 10, cv::Scalar(0,0,255),cv::FILLED);
-//         } 
-//         else{
-//             cv::rectangle(output, std::get<1>(white_balls[0]), std::get<2>(white_balls[0]), cv::Scalar(255,255,255), 2);
-//             //for the others, plot the bounding boxes of the balls with stripes
-//             for (size_t i = 1; i < white_balls.size(); ++i)
-//                 cv::rectangle(output, std::get<1>(white_balls[i]), std::get<2>(white_balls[i]), cv::Scalar(0,0,255), 2);
-//         }
-            
-
-        
-
-//         //cv::waitKey(0);
-//     }
-// }

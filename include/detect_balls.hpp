@@ -7,6 +7,8 @@
 
 std::vector<cv::Vec3f> detectBalls(cv::Mat& src, cv::Mat& output, int segmentation);
 
-//void detectWhiteBall(std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int>>& white_balls, int& segmentation, cv::Mat& img, cv::Mat& output);
+void detectWhiteBall(std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int>>& white_balls, int& segmentation, cv::Mat& img, cv::Mat& output);
+
+void detectBlackBall(std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int>>& solid_balls, int& segmentation, cv::Mat& img, cv::Mat& output);
 
 #endif 
