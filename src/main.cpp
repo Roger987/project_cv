@@ -47,6 +47,8 @@ int main(int argc, char** argv){
     Mat mask = Mat::zeros(src.size(), CV_8UC3);
     drawContours(mask, contours, -1, cv::Scalar(255,255,255), FILLED);
     Mat cropped = Mat::zeros(src.size(), CV_8UC3);
+
+    int segmentation = 1;
  
     while(1){
  
@@ -56,10 +58,17 @@ int main(int argc, char** argv){
             break;
         }
 
+        
+
         //fillPoly(frame, corners, cv::Scalar(49, 124, 76));
 
         frame.copyTo(cropped, mask);
-        detectBalls(cropped, frame);
+
+        if(segmentation == 1)
+            fillPoly(frame, corners, cv::Scalar(49, 124, 76));
+
+        //detectBalls(cropped, frame);
+        detectBalls(cropped, frame, segmentation);
         
         drawContours(frame, contours, -1, Scalar(0, 255, 255), 2);
         //drawContours(cropped, contours, -1, Scalar(0, 255, 255), 2);
