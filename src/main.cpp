@@ -10,6 +10,7 @@
 #include "table_corners.h"
 #include "detect_contours.h"
 #include "detect_balls.hpp"
+#include "find_perspective.h"
 
 using namespace cv;
 using namespace std;
@@ -40,6 +41,8 @@ int main(int argc, char** argv){
     // Gets the corners of the table based on the detected table region
     vector<vector<Point>> corners = tableCorners(first_frame);
 
+    Mat M = findPerspective(src, corners);
+
     // Gets the contours of the table
     vector<vector<Point>> contours = detectContours(first_frame.rows, first_frame.cols, corners);
 
@@ -48,7 +51,7 @@ int main(int argc, char** argv){
     drawContours(mask, contours, -1, cv::Scalar(255,255,255), FILLED);
     Mat cropped = Mat::zeros(src.size(), CV_8UC3);
 
-    int segmentation = 1;
+    int segmentation = 0;
  
     while(1){
  
@@ -57,8 +60,6 @@ int main(int argc, char** argv){
         if (frame.empty()){
             break;
         }
-
-        
 
         //fillPoly(frame, corners, cv::Scalar(49, 124, 76));
 
@@ -81,8 +82,8 @@ int main(int argc, char** argv){
         }
     }
     
-    // cap.release();
-    // destroyAllWindows();
+    cap.release();
+    destroyAllWindows();
 
     return 0;
 }
