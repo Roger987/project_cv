@@ -46,11 +46,11 @@ int histogram_cal(cv::Mat img){
     double whitePercentage = (static_cast<double>(whitePixelCount) / totalPixels) * 100;
 
     // Print the result
-    if (whitePercentage > 15){
-        std::cout << "Number of White pixels: " << whitePixelCount << " " << whitePercentage << std::endl;
-        cv::imshow("ball1", img);
+    // if (whitePercentage > 15){
+        // std::cout << "Number of White pixels: " << whitePixelCount << " " << whitePercentage << std::endl;
+        // cv::imshow("ball1", img);
         //cv::waitKey(0);
-    }
+    // }
     // std::cout << "Number of White pixels: " << whitePixelCount << " " << whitePercentage << std::endl;
 
     int histSize = 256;
@@ -221,9 +221,9 @@ void detectBlackBall(std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, 
             return std::get<3>(a) > std::get<3>(b);
         });
 
-        std::cout<<"New image"<<std::endl;
-        for(auto& ball : solid_balls)
-            std::cout<<std::get<3>(ball)<<std::endl;
+        // std::cout<<"New image"<<std::endl;
+        // for(auto& ball : solid_balls)
+        //     std::cout<<std::get<3>(ball)<<std::endl;
 
         if(segmentation){
             cv::circle(output, cv::Point2i(std::get<2>(solid_balls[0]).x-5, std::get<2>(solid_balls[0]).y-5), 10, cv::Scalar(0,0,0),cv::FILLED);

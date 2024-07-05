@@ -7,7 +7,7 @@ cv::Mat findPerspective(cv::Mat src, std::vector<std::vector<cv::Point>> corners
     // std::cout << "Rounded ratio: " << round(ratio) << std::endl;
 
     std::vector<cv::Point2f> new_table;
-    if (round(ratio) == 1){
+    if (round(ratio) == 1 || (abs(corners[0][3].y - corners[0][0].y) > abs(corners[0][3].x - corners[0][2].x))){
         new_table = {
             cv::Point2f(800, 400), // bottom-right
             cv::Point2f(800, 0), // top-right
@@ -33,11 +33,11 @@ cv::Mat findPerspective(cv::Mat src, std::vector<std::vector<cv::Point>> corners
 
     cv::Mat M = cv::getPerspectiveTransform(corners_flat, new_table);
 
-    // cv::Mat warp;
-    // cv::warpPerspective(src, warp, M, cv::Size(800, 400));
-    // circle(warp, cv::Point2f(0, 0), 10, cv::Scalar(0, 255, 0), -1);
-    // cv::imshow("Warped", warp);
-    // cv::waitKey(0);
+    cv::Mat warp;
+    cv::warpPerspective(src, warp, M, cv::Size(800, 400));
+    circle(warp, cv::Point2f(0, 0), 10, cv::Scalar(0, 255, 0), -1);
+    cv::imshow("Warped", warp);
+    cv::waitKey(0);
 
     return M;
 }
