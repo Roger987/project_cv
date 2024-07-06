@@ -45,6 +45,10 @@ int main(int argc, char** argv){
 
     // Gets the contours of the table
     vector<vector<Point>> contours = detectContours(first_frame.rows, first_frame.cols, corners);
+    
+    fillPoly(src, corners, cv::Scalar(49, 124, 76));
+    drawContours(src, contours, -1, Scalar(0, 255, 255), 2);
+    imwrite("../docs/outputs/segmentation_table.png",src);
 
     // Creates a mask to isolate the table area in order to facilitate the objects detection
     Mat mask = Mat::zeros(src.size(), CV_8UC3);
@@ -52,6 +56,7 @@ int main(int argc, char** argv){
     Mat cropped = Mat::zeros(src.size(), CV_8UC3);
 
     int segmentation = 0;
+    int upvision = 0;
  
     while(1){
  
@@ -69,12 +74,33 @@ int main(int argc, char** argv){
             fillPoly(frame, corners, cv::Scalar(49, 124, 76));
 
         //detectBalls(cropped, frame);
-        detectBalls(cropped, frame, segmentation);
+        vector<Vec3f> coord_balls = detectBalls(cropped, frame, segmentation);
         
         drawContours(frame, contours, -1, Scalar(0, 255, 255), 2);
         //drawContours(cropped, contours, -1, Scalar(0, 255, 255), 2);
-        
-        imshow("Frame", frame);
+
+        if (upvision == 1){
+            Mat table2d = Mat(400, 800, CV_8UC3, Scalar(255, 255, 255));
+
+            vector<Point2f> input_balls;
+            vector<Point2f> transf_coord_balls;
+            
+            for (size_t i = 0; i < coord_balls.size(); i++){
+                input_balls.push_back(Point2f(coord_balls[i][0],coord_balls[i][1]));
+                // warpPerspective(coord_balls, warp, M, cv::Size(800, 400));
+                // cout << coord_balls[i] << endl;
+            }
+            perspectiveTransform(input_balls, transf_coord_balls, M);
+            for (size_t i = 0; i < transf_coord_balls.size(); i++){
+                circle(table2d, transf_coord_balls[i], 8, Scalar(255, 0, 0), -1);
+            }
+            imshow("Frame", table2d);
+
+        } else {
+            imshow("Frame", frame);
+        }
+
+        //imshow("Frame", table2d);
         char c = (char) waitKey(25); 
         if(c==27){ // esc to exit video
             break;
