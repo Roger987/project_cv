@@ -11,6 +11,7 @@
 #include "detect_contours.h"
 #include "detect_balls.hpp"
 #include "find_perspective.h"
+#include "draw_table.hpp"
 
 using namespace cv;
 using namespace std;
@@ -54,7 +55,7 @@ int main(int argc, char** argv){
     drawContours(mask, contours, -1, cv::Scalar(255,255,255), FILLED);
     Mat cropped = Mat::zeros(src.size(), CV_8UC3);
 
-    int segmentation = 0;
+    int segmentation = 1;
     int upvision = 1;
 
     std::vector<cv::Vec4f> coord_balls;
@@ -79,42 +80,13 @@ int main(int argc, char** argv){
         //detectBalls(cropped, frame);
         // vector<Vec4f> coord_balls = detectBalls(cropped, frame, segmentation);
         detectBalls(cropped, frame, segmentation, coord_balls);
-
-        // std::cout<<"COOR SIZE "<<coord_balls.size()<<std::endl;
-        // for(auto obj : coord_balls)
-        //     std::cout<<obj[0]<<" "<<obj[1]<<" "<<obj[2]<<" "<<obj[3]<<std::endl;
         
         drawContours(frame, contours, -1, Scalar(0, 255, 255), 2);
         //drawContours(cropped, contours, -1, Scalar(0, 255, 255), 2);
 
         if (upvision == 1){
            // Mat table2d = Mat(400, 800, CV_8UC3, Scalar(255, 255, 255));
-           Mat table2d = imread("../docs/table.png");
-
-
-            vector<Point2f> input_balls;
-            vector<Point2f> transf_coord_balls;
-            
-            for (size_t i = 0; i < coord_balls.size(); i++){
-                input_balls.push_back(Point2f(coord_balls[i][0],coord_balls[i][1]));
-                // warpPerspective(coord_balls, warp, M, cv::Size(800, 400));
-                // cout << coord_balls[i] << endl;
-            }
-            perspectiveTransform(input_balls, transf_coord_balls, M);
-            for (size_t i = 0; i < transf_coord_balls.size(); i++){
-                if (coord_balls[i][3] == 1){
-                    circle(table2d, transf_coord_balls[i], 16, Scalar(255, 255, 255), -1);
-                    circle(table2d, transf_coord_balls[i], 16, Scalar(0, 0, 0), 1);
-                } else if (coord_balls[i][3] == 2){
-                    circle(table2d, transf_coord_balls[i], 16, Scalar(0, 0, 0), -1);
-                } else if (coord_balls[i][3] == 3){
-                    circle(table2d, transf_coord_balls[i], 16, Scalar(250, 230, 200), -1);
-                    circle(table2d, transf_coord_balls[i], 16, Scalar(0, 0, 0), 1);
-                } else if (coord_balls[i][3] == 4){
-                    circle(table2d, transf_coord_balls[i], 16, Scalar(150, 150, 250), -1);
-                    circle(table2d, transf_coord_balls[i], 16, Scalar(0, 0, 0), 1);
-                }
-            }
+            Mat table2d = drawTable(coord_balls, M);
             resize(table2d, table2d, Size(frame.cols/2, frame.rows/2), INTER_LINEAR);
 
             Rect roi(0, frame.rows - table2d.rows, table2d.cols, table2d.rows);

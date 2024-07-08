@@ -10,6 +10,12 @@ include_directories(include)
 
 find_package(OpenCV REQUIRED)
 
-add_executable(main src/main.cpp src/detect_table.cpp src/table_corners.cpp src/detect_contours.cpp src/detect_balls.cpp src/find_perspective.cpp)
+add_executable(main src/main.cpp 
+                    src/detect_table.cpp 
+                    src/table_corners.cpp 
+                    src/detect_contours.cpp 
+                    src/detect_balls.cpp 
+                    src/find_perspective.cpp
+                    src/draw_table.cpp)
 
 target_link_libraries(main ${OpenCV_LIBS})
