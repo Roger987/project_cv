@@ -55,7 +55,7 @@ int main(int argc, char** argv){
     Mat cropped = Mat::zeros(src.size(), CV_8UC3);
 
     int segmentation = 0;
-    int upvision = 0;
+    int upvision = 1;
 
     std::vector<cv::Vec4f> coord_balls;
  
@@ -88,7 +88,9 @@ int main(int argc, char** argv){
         //drawContours(cropped, contours, -1, Scalar(0, 255, 255), 2);
 
         if (upvision == 1){
-            Mat table2d = Mat(400, 800, CV_8UC3, Scalar(255, 255, 255));
+           // Mat table2d = Mat(400, 800, CV_8UC3, Scalar(255, 255, 255));
+           Mat table2d = imread("../docs/table.png");
+
 
             vector<Point2f> input_balls;
             vector<Point2f> transf_coord_balls;
@@ -100,9 +102,27 @@ int main(int argc, char** argv){
             }
             perspectiveTransform(input_balls, transf_coord_balls, M);
             for (size_t i = 0; i < transf_coord_balls.size(); i++){
-                circle(table2d, transf_coord_balls[i], 8, Scalar(255, 0, 0), -1);
+                if (coord_balls[i][3] == 1){
+                    circle(table2d, transf_coord_balls[i], 16, Scalar(255, 255, 255), -1);
+                    circle(table2d, transf_coord_balls[i], 16, Scalar(0, 0, 0), 1);
+                } else if (coord_balls[i][3] == 2){
+                    circle(table2d, transf_coord_balls[i], 16, Scalar(0, 0, 0), -1);
+                } else if (coord_balls[i][3] == 3){
+                    circle(table2d, transf_coord_balls[i], 16, Scalar(250, 230, 200), -1);
+                    circle(table2d, transf_coord_balls[i], 16, Scalar(0, 0, 0), 1);
+                } else if (coord_balls[i][3] == 4){
+                    circle(table2d, transf_coord_balls[i], 16, Scalar(150, 150, 250), -1);
+                    circle(table2d, transf_coord_balls[i], 16, Scalar(0, 0, 0), 1);
+                }
             }
-            imshow("Frame", table2d);
+            resize(table2d, table2d, Size(frame.cols/2, frame.rows/2), INTER_LINEAR);
+
+            Rect roi(0, frame.rows - table2d.rows, table2d.cols, table2d.rows);
+            Mat regionInterest = frame(roi);
+            table2d.copyTo(regionInterest);
+
+            //imshow("Frame", table2d);
+            imshow("Frame", frame);
 
         } else {
             imshow("Frame", frame);
@@ -119,6 +139,5 @@ int main(int argc, char** argv){
     cap.release();
     destroyAllWindows();
 
-    std::cout<<"GGGGGGGGGGGGGGGGGGGGGGGGG"<<std::endl;
     return 0;
 }

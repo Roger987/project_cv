@@ -9,17 +9,25 @@ cv::Mat findPerspective(cv::Mat src, std::vector<std::vector<cv::Point>> corners
     std::vector<cv::Point2f> new_table;
     if (round(ratio) == 1 || (abs(corners[0][3].y - corners[0][0].y) > abs(corners[0][3].x - corners[0][2].x))){
         new_table = {
-            cv::Point2f(800, 400), // bottom-right
-            cv::Point2f(800, 0), // top-right
-            cv::Point2f(0, 0), // top-left
-            cv::Point2f(0, 400), // bottom-left
+            // cv::Point2f(800, 400), // bottom-right
+            // cv::Point2f(800, 0), // top-right
+            // cv::Point2f(0, 0), // top-left
+            // cv::Point2f(0, 400), // bottom-left
+            cv::Point2f(1400, 760), // bottom-right
+            cv::Point2f(1396, 142), // top-right
+            cv::Point2f(155, 141), // top-left
+            cv::Point2f(158, 763), // bottom-left
         };
     } else {
         new_table = {
-            cv::Point2f(0, 400), // bottom-left
-            cv::Point2f(800, 400), // bottom-right
-            cv::Point2f(800, 0), // top-right
-            cv::Point2f(0, 0), // top-left
+            // cv::Point2f(0, 400), // bottom-left
+            // cv::Point2f(800, 400), // bottom-right
+            // cv::Point2f(800, 0), // top-right
+            // cv::Point2f(0, 0), // top-left
+            cv::Point2f(158, 763), // bottom-left
+            cv::Point2f(1400, 760), // bottom-right
+            cv::Point2f(1396, 142), // top-right
+            cv::Point2f(155, 141), // top-left
         };
     }
 
