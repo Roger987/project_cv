@@ -64,21 +64,18 @@ int main(int argc, char** argv){
  
         Mat frame;
         cap >> frame;
+        Mat copy_frame = frame.clone();
         if (frame.empty()){
             break;
         }
 
         coord_balls.clear();
 
-        //fillPoly(frame, corners, cv::Scalar(49, 124, 76));
-
         frame.copyTo(cropped, mask);
 
         if(segmentation == 1)
             fillPoly(frame, corners, cv::Scalar(49, 124, 76));
 
-        //detectBalls(cropped, frame);
-        // vector<Vec4f> coord_balls = detectBalls(cropped, frame, segmentation);
         detectBalls(cropped, frame, segmentation, coord_balls);
         
         drawContours(frame, contours, -1, Scalar(0, 255, 255), 2);
@@ -87,14 +84,14 @@ int main(int argc, char** argv){
         if (upvision == 1){
            // Mat table2d = Mat(400, 800, CV_8UC3, Scalar(255, 255, 255));
             Mat table2d = drawTable(coord_balls, M);
-            resize(table2d, table2d, Size(frame.cols/2, frame.rows/2), INTER_LINEAR);
+            resize(table2d, table2d, Size(0.4*frame.cols, 0.4*frame.rows), INTER_AREA);
 
             Rect roi(0, frame.rows - table2d.rows, table2d.cols, table2d.rows);
-            Mat regionInterest = frame(roi);
+            Mat regionInterest = copy_frame(roi);
             table2d.copyTo(regionInterest);
 
-            //imshow("Frame", table2d);
-            imshow("Frame", frame);
+            // imshow("Frame", table2d);
+            imshow("Frame", copy_frame);
 
         } else {
             imshow("Frame", frame);
