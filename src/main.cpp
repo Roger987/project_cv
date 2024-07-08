@@ -48,7 +48,6 @@ int main(int argc, char** argv){
     
     fillPoly(src, corners, cv::Scalar(49, 124, 76));
     drawContours(src, contours, -1, Scalar(0, 255, 255), 2);
-    imwrite("../docs/outputs/segmentation_table.png",src);
 
     // Creates a mask to isolate the table area in order to facilitate the objects detection
     Mat mask = Mat::zeros(src.size(), CV_8UC3);
@@ -57,6 +56,8 @@ int main(int argc, char** argv){
 
     int segmentation = 0;
     int upvision = 0;
+
+    std::vector<cv::Vec4f> coord_balls;
  
     while(1){
  
@@ -66,6 +67,8 @@ int main(int argc, char** argv){
             break;
         }
 
+        coord_balls.clear();
+
         //fillPoly(frame, corners, cv::Scalar(49, 124, 76));
 
         frame.copyTo(cropped, mask);
@@ -74,7 +77,12 @@ int main(int argc, char** argv){
             fillPoly(frame, corners, cv::Scalar(49, 124, 76));
 
         //detectBalls(cropped, frame);
-        vector<Vec3f> coord_balls = detectBalls(cropped, frame, segmentation);
+        // vector<Vec4f> coord_balls = detectBalls(cropped, frame, segmentation);
+        detectBalls(cropped, frame, segmentation, coord_balls);
+
+        // std::cout<<"COOR SIZE "<<coord_balls.size()<<std::endl;
+        // for(auto obj : coord_balls)
+        //     std::cout<<obj[0]<<" "<<obj[1]<<" "<<obj[2]<<" "<<obj[3]<<std::endl;
         
         drawContours(frame, contours, -1, Scalar(0, 255, 255), 2);
         //drawContours(cropped, contours, -1, Scalar(0, 255, 255), 2);
@@ -98,6 +106,7 @@ int main(int argc, char** argv){
 
         } else {
             imshow("Frame", frame);
+            // cv::waitKey(0);
         }
 
         //imshow("Frame", table2d);
@@ -110,5 +119,6 @@ int main(int argc, char** argv){
     cap.release();
     destroyAllWindows();
 
+    std::cout<<"GGGGGGGGGGGGGGGGGGGGGGGGG"<<std::endl;
     return 0;
 }
