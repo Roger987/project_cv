@@ -111,18 +111,18 @@ void detectBalls(cv::Mat& img, cv::Mat& output, int segmentation, std::vector<cv
     std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>> white_balls;
     std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>> solid_balls;
 
-    for(const auto& c : circles){
-        float radius = c[2]; 
-        cv::Rect ball_bbox(c[0] - c[2], c[1] - c[2], radius * 2, radius * 2);
+    for(auto& c : circles){
+        float radius = std::floor(c[2]); 
+        cv::Rect ball_bbox(std::floor(c[0] - c[2]), std::floor(c[1] - c[2]), radius * 2, radius * 2);
         cv::Mat roi = src(ball_bbox);
         cv::Scalar mean, stddev;
         cv::meanStdDev(roi, mean, stddev);
 
         if(mean[0] < 255){
             cv::Point center(c[0], c[1]);
-            cv::Point2i top_left(c[0] - radius, c[1] - radius);
+            cv::Point2i top_left(std::floor(c[0] - radius), std::floor(c[1] - radius));
             cv::Point2i bottom_right(c[0] + 8, c[1] + 8);
-            cv::Rect ball_square(c[0] - radius, c[1] - radius, bottom_right.x - top_left.x, bottom_right.y - top_left.y);
+            cv::Rect ball_square(std::floor(c[0] - radius), std::floor(c[1] - radius), bottom_right.x - top_left.x, bottom_right.y - top_left.y);
 
             int class_ball = histogram_cal(img(ball_square));
             if(class_ball != -1){

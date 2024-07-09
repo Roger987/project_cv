@@ -55,8 +55,8 @@ int main(int argc, char** argv){
     drawContours(mask, contours, -1, cv::Scalar(255,255,255), FILLED);
     Mat cropped = Mat::zeros(src.size(), CV_8UC3);
 
-    int segmentation = 1;
-    int upvision = 1;
+    int segmentation = 0;
+    int upvision = 0;
 
     std::vector<cv::Vec4f> coord_balls;
  
