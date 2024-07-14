@@ -61,7 +61,7 @@ int main(int argc, char** argv){
     vector<vector<Point>> corners = tableCorners(first_frame);
 
     // Find the matrix to the geometric transformation
-    Mat M = findPerspective(src, corners);
+    // Mat M = findPerspective(src, corners);
 
     // Gets the contours of the table
     vector<vector<Point>> contours = detectContours(first_frame.rows, first_frame.cols, corners);
@@ -73,9 +73,6 @@ int main(int argc, char** argv){
     Mat mask = Mat::zeros(src.size(), CV_8UC3);
     drawContours(mask, contours, -1, cv::Scalar(255,255,255), FILLED);
     Mat cropped = Mat::zeros(src.size(), CV_8UC3);
-
-    int segmentation = 0;
-    int upvision = 0;
 
     std::vector<cv::Vec4f> coord_balls;
     

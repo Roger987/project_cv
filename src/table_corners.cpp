@@ -121,42 +121,44 @@ std::vector<std::vector<cv::Point>> tableCorners(cv::Mat& src){
     // To draw the polygon, the points must be ordered clockwise
     sortPointsCounterClockwise(intersections);
 
-    std::vector <cv::Point> corner_list;
-    corner_list.push_back(intersections[0]);
-    if (intersections.size() > 4) {
+    // std::vector <cv::Point> corner_list;
+    // corner_list.push_back(intersections[0]);
+    // if (intersections.size() > 4) {
 
-        while (corner_list.size() < 4) {
+    //     while (corner_list.size() < 4) {
 
-            double max_dist = -1;
-            cv::Point corner_candidate;
+    //         double max_dist = -1;
+    //         cv::Point corner_candidate;
 
-            for (size_t i = 0; i < intersections.size(); i++){
+    //         for (size_t i = 0; i < intersections.size(); i++){
 
-                double min_dist = 100000000.0;
+    //             double min_dist = 100000000.0;
 
-                for (size_t j = 0; j < corner_list.size(); j++) {
-                    double dist = pointsDist(intersections[i], corner_list[j]);
-                    if (dist < min_dist){
-                        min_dist = dist;
-                    }
-                }
+    //             for (size_t j = 0; j < corner_list.size(); j++) {
+    //                 double dist = pointsDist(intersections[i], corner_list[j]);
+    //                 if (dist < min_dist){
+    //                     min_dist = dist;
+    //                 }
+    //             }
 
-                if (min_dist > max_dist) {
-                    max_dist = min_dist;
-                    corner_candidate = intersections[i];
-                }
+    //             if (min_dist > max_dist) {
+    //                 max_dist = min_dist;
+    //                 corner_candidate = intersections[i];
+    //             }
 
-            }
+    //         }
 
-            corner_list.push_back(corner_candidate);
+    //         corner_list.push_back(corner_candidate);
 
-        }
+    //     }
 
-        return {corner_list};
+    //     return {corner_list};
 
 
-    } else {
-        return {intersections};
-    }
+    // } else {
+    //     return {intersections};
+    // }
+
+    return {intersections};
 
 }
