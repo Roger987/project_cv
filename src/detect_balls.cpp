@@ -110,15 +110,15 @@ void detectBalls(cv::Mat& img, cv::Mat& output, int segmentation, std::vector<cv
 
     std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>> white_balls;
     std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>> solid_balls;
-         
+
     for(const auto& c : circles){
-        float radius = c[2];
+        float radius = c[2]; 
         cv::Rect ball_bbox(c[0] - c[2], c[1] - c[2], radius * 2, radius * 2);
         cv::Mat roi = src(ball_bbox);
         cv::Scalar mean, stddev;
         cv::meanStdDev(roi, mean, stddev);
 
-        if(mean[0] < 160){
+        if(mean[0] < 255){
             cv::Point center(c[0], c[1]);
             cv::Point2i top_left(c[0] - radius, c[1] - radius);
             cv::Point2i bottom_right(c[0] + radius, c[1] + radius);
@@ -155,7 +155,7 @@ void detectWhiteBall(std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, 
     if(!white_balls.empty()){
         for (auto& ball_info : white_balls) {
             cv::cvtColor(img(std::get<0>(ball_info)), gray, cv::COLOR_BGR2GRAY);
-            cv::threshold(gray, thresh, 200, 255, cv::THRESH_BINARY);
+            cv::threshold(gray, thresh, 240, 255, cv::THRESH_BINARY);
             std::get<3>(ball_info) = cv::countNonZero(thresh);
         }
 
@@ -188,10 +188,8 @@ void detectBlackBall(std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, 
     if(!solid_balls.empty()){
         for (auto& ball_info : solid_balls){
             cv::cvtColor(img(std::get<0>(ball_info)), gray, cv::COLOR_BGR2GRAY);
-            cv::threshold(gray, thresh, 220, 255, cv::THRESH_BINARY);
-            int black_pixel_count = thresh.rows * thresh.cols - cv::countNonZero(thresh);
-            std::get<3>(ball_info) = black_pixel_count;
-            //std::get<3>(ball_info) = cv::countNonZero(thresh);
+            cv::threshold(gray, thresh, 230, 255, cv::THRESH_BINARY);
+            std::get<3>(ball_info) = cv::countNonZero(thresh);
         }
 
         std::sort(solid_balls.begin(), solid_balls.end(), [](const std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>& a, const std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>& b) {
