@@ -45,7 +45,7 @@ int main(int argc, char** argv){
 
     // Flags for the output
     int segmentation = 0;
-    int upvision = 0;
+    int upvision = 1;
 
     // Get the first frame of the video
     Mat first_frame, src, original;
@@ -61,13 +61,15 @@ int main(int argc, char** argv){
     vector<vector<Point>> corners = tableCorners(first_frame);
 
     // Find the matrix to the geometric transformation
-    // Mat M = findPerspective(src, corners);
+    Mat M = findPerspective(src, corners);
 
     // Gets the contours of the table
     vector<vector<Point>> contours = detectContours(first_frame.rows, first_frame.cols, corners);
     
     // fillPoly(src, corners, cv::Scalar(49, 124, 76));
     drawContours(src, contours, -1, Scalar(0, 255, 255), 2);
+    // imshow("SRC", src);
+    // waitKey(0);
 
     // Creates a mask to isolate the table area in order to facilitate the objects (balls) detection
     Mat mask = Mat::zeros(src.size(), CV_8UC3);
@@ -93,6 +95,8 @@ int main(int argc, char** argv){
         balltracker->init(original, tracked_balls_bbx[i]);
         multitracker.push_back(balltracker);
     }
+
+    std::vector<std::vector<cv::Point2f>> trajectories(coord_balls.size());
 
     // int count_frame = 1;
 
@@ -133,26 +137,23 @@ int main(int argc, char** argv){
         if (upvision == 1){
             
             for (size_t i = 0; i < multitracker.size(); i++){
-                bool updated_bbx = multitracker[i]->update(frame, tracked_balls_bbx[i]);
+                multitracker[i]->update(frame, tracked_balls_bbx[i]);
             }
 
-            Mat table2d = Mat(400, 800, CV_8UC3, Scalar(255, 255, 255));
-            // Mat table2d = drawTable(coord_balls, M);
-            // resize(table2d, table2d, Size(0.4*frame.cols, 0.4*frame.rows), INTER_AREA);
+            // Mat table2d = Mat(400, 800, CV_8UC3, Scalar(255, 255, 255));
+            Mat table2d = drawTable(tracked_balls_bbx, coord_balls, trajectories, M);
+            resize(table2d, table2d, Size(0.4*frame.cols, 0.4*frame.rows), INTER_AREA);
 
-            // Rect roi(0, frame.rows - table2d.rows, table2d.cols, table2d.rows);
-            // Mat regionInterest = copy_frame(roi);
-            // table2d.copyTo(regionInterest);
-
-            // // imshow("Frame", table2d);
-            // imshow("Frame", copy_frame);
+            Rect roi(0, frame.rows - table2d.rows, table2d.cols, table2d.rows);
+            Mat regionInterest = frame(roi);
+            table2d.copyTo(regionInterest);
 
         } else {
 
             if(segmentation == 1)
                 fillPoly(segmented_frame, corners, cv::Scalar(49, 124, 76));
 
-            drawContours(segmented_frame, contours, -1, Scalar(0, 255, 255), 2);
+            drawContours(frame, contours, -1, Scalar(0, 255, 255), 2);
 
             for (size_t i = 0; i < multitracker.size(); i++){
                 bool updated_bbx = multitracker[i]->update(frame, tracked_balls_bbx[i]);
@@ -193,7 +194,7 @@ int main(int argc, char** argv){
 
     // MODEL EVALUATION
 
-    // cout << tokens[2] << endl;
+    cout << tokens[2] << endl;
     // evaluate();
     // evaluate("../Dataset/" + tokens[2] + "/bounding_boxes/frame_first_bbox.txt", "../Dataset/" + tokens[2] + "/bounding_boxes/frame_first.txt", tokens[2], 1);
     // cout << "\n" << endl;
