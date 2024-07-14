@@ -35,12 +35,15 @@ cv::Mat findPerspective(cv::Mat src, std::vector<std::vector<cv::Point>> corners
     for (const auto& corner : corners[0]) {
         corners_flat.push_back(cv::Point2f(corner.x, corner.y));
     }
-    
+    std::cout << "corners_flat size: " << corners_flat.size() << std::endl;
+    std::cout << "new_table size: " << new_table.size() << std::endl;
     // cv::imshow("Original", src);
     // cv::waitKey(0);
 
     cv::Mat M = cv::getPerspectiveTransform(corners_flat, new_table);
 
+    // cv::imshow("Original", src);
+    // cv::waitKey(0);
     // cv::Mat warp;
     // cv::warpPerspective(src, warp, M, cv::Size(800, 400));
     // circle(warp, cv::Point2f(0, 0), 10, cv::Scalar(0, 255, 0), -1);

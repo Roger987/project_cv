@@ -1,12 +1,26 @@
 #include "table_corners.h"
 
+
 double linesDist(cv::Vec2f line1, cv::Vec2f line2){
     return (abs(line1[0] - line2[0]) + abs(line1[1] - line2[1]));
 }
 
+
 double pointsDist(cv::Point pt1, cv::Point pt2){
     return sqrt(pow(pt1.x - pt2.x,2) + pow(pt1.y - pt2.y,2));
 }
+
+
+double pointLineDist(cv::Point pt, cv::Vec2f line){
+
+    double a = cos(line[1]);
+    double b = sin(line[1]);
+    double c = -line[0];
+
+    return abs(a*pt.x + b*pt.y + c) / std::sqrt(a*a + b*b);
+
+}
+
 
 cv::Point findIntersection(cv::Vec2f line1, cv::Vec2f line2){
     
@@ -36,6 +50,7 @@ cv::Point findIntersection(cv::Vec2f line1, cv::Vec2f line2){
 
 }
 
+
 void sortPointsCounterClockwise(std::vector<cv::Point>& points){
 
     double x = 0.0;
@@ -56,6 +71,7 @@ std::vector<std::vector<cv::Point>> tableCorners(cv::Mat& src){
     
     cv::Mat gray, color_dst;
     cvtColor(src, gray, cv::COLOR_BGR2GRAY);
+    cv::Mat copy_src = src.clone();
 
     cv::medianBlur(gray, gray, 5);
     cv::Mat canny;
@@ -69,6 +85,7 @@ std::vector<std::vector<cv::Point>> tableCorners(cv::Mat& src){
     std::vector <cv::Vec2f> linesPruned;
     linesPruned.push_back(lines[0]);
     float delta = 50;
+    cv::Point center(src.cols/2, src.rows/2);
 
     for (int i = 1; i < lines.size(); i++) {
         cv::Vec2f current_line = lines[i];
@@ -76,6 +93,11 @@ std::vector<std::vector<cv::Point>> tableCorners(cv::Mat& src){
         for (int j = 0; j < linesPruned.size(); j++){
             double dist = linesDist(current_line, linesPruned[j]);
             if (dist < delta){
+                double dist1 = pointLineDist(center, current_line);
+                double dist2 = pointLineDist(center, linesPruned[j]);
+                if (dist1 > dist2) {
+                    linesPruned[j] = current_line;
+                }
                 flag = false;
             }
         }
@@ -99,13 +121,42 @@ std::vector<std::vector<cv::Point>> tableCorners(cv::Mat& src){
     // To draw the polygon, the points must be ordered clockwise
     sortPointsCounterClockwise(intersections);
 
-    cv::Mat output = src;
-    std::vector<std::vector<cv::Point>> corners;
-    if (!intersections.empty()) {
-        corners = {intersections};
-        //cv::fillPoly(output, corners, cv::Scalar(255, 0, 0));
-    }
+    std::vector <cv::Point> corner_list;
+    corner_list.push_back(intersections[0]);
+    if (intersections.size() > 4) {
 
-    return corners;
+        while (corner_list.size() < 4) {
+
+            double max_dist = -1;
+            cv::Point corner_candidate;
+
+            for (size_t i = 0; i < intersections.size(); i++){
+
+                double min_dist = 100000000.0;
+
+                for (size_t j = 0; j < corner_list.size(); j++) {
+                    double dist = pointsDist(intersections[i], corner_list[j]);
+                    if (dist < min_dist){
+                        min_dist = dist;
+                    }
+                }
+
+                if (min_dist > max_dist) {
+                    max_dist = min_dist;
+                    corner_candidate = intersections[i];
+                }
+
+            }
+
+            corner_list.push_back(corner_candidate);
+
+        }
+
+        return {corner_list};
+
+
+    } else {
+        return {intersections};
+    }
 
 }
