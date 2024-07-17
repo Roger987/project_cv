@@ -106,7 +106,7 @@ void detectBalls(cv::Mat& img, cv::Mat& output, int segmentation, std::vector<cv
     cv::adaptiveThreshold(src, src, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY_INV, 11, 2);
 
     std::vector<cv::Vec3f> circles;
-    cv::HoughCircles(src, circles, cv::HOUGH_GRADIENT, 1, 10, 150, 10, 7, 16);
+    cv::HoughCircles(src, circles, cv::HOUGH_GRADIENT, 1, 18, 150, 12, 7, 16);
 
     std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>> white_balls;
     std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>> solid_balls;
@@ -147,7 +147,8 @@ void detectBalls(cv::Mat& img, cv::Mat& output, int segmentation, std::vector<cv
         detectWhiteBall(white_balls, segmentation, img, output, classified_balls);
     
     if(!solid_balls.empty())
-        detectBlackBall(solid_balls, segmentation, img, output, classified_balls);
+       detectBlackBall(solid_balls, segmentation, img, output, classified_balls);
+       //true;
 }
 
 void detectWhiteBall(std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>>& white_balls, int segmentation, cv::Mat& img, cv::Mat& output, std::vector<cv::Vec4f>& classified_balls) {
@@ -188,8 +189,11 @@ void detectBlackBall(std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, 
     if(!solid_balls.empty()){
         for (auto& ball_info : solid_balls){
             cv::cvtColor(img(std::get<0>(ball_info)), gray, cv::COLOR_BGR2GRAY);
-            cv::threshold(gray, thresh, 230, 255, cv::THRESH_BINARY);
-            std::get<3>(ball_info) = cv::countNonZero(thresh);
+            int totalPixels = gray.rows * gray.cols;
+            cv::threshold(gray, thresh, 50, 255, cv::THRESH_BINARY);
+            std::get<3>(ball_info) = totalPixels-cv::countNonZero(thresh);
+            std::cout << "Number of Black pixels: " <<std::get<3>(ball_info)<<std::endl;
+            
         }
 
         std::sort(solid_balls.begin(), solid_balls.end(), [](const std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>& a, const std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>& b) {
