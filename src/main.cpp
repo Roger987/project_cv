@@ -17,6 +17,7 @@
 #include "find_perspective.h"
 #include "draw_table.hpp"
 #include "generate_coords.hpp"
+#include "generate_mask.hpp"
 #include "model_evaluation.hpp"
 
 using namespace cv;
@@ -112,12 +113,6 @@ int main(int argc, char** argv){
             break;
         }
 
-        if (count_frame == 1) {
-            generateCoords(coord_balls, "../Dataset/" + tokens[2] + "/bounding_boxes/frame_first");
-        } else if (count_frame == video_length - 1){
-            generateCoords(coord_balls, "../Dataset/" + tokens[2] + "/bounding_boxes/frame_last");
-        }
-
         if (upvision == 1){
             
             for (size_t i = 0; i < multitracker.size(); i++){
@@ -170,6 +165,14 @@ int main(int argc, char** argv){
         } else {
             output.write(frame);
         }
+
+        // if (count_frame == 1) {
+        //     generateCoords(coord_balls, "../Dataset/" + tokens[2] + "/bounding_boxes/frame_first");
+        //     generateMask(coord_balls, tracked_balls_bbx, corners, frame.cols, frame.rows, "../Dataset/" + tokens[2] + "/masks/frame_first_computed.png");
+        // } else if (count_frame == video_length - 1){
+        //     generateCoords(coord_balls, "../Dataset/" + tokens[2] + "/bounding_boxes/frame_last");
+        //     generateMask(coord_balls, tracked_balls_bbx, corners, frame.cols, frame.rows, "../Dataset/" + tokens[2] + "/masks/frame_last_computed.png");
+        // }
 
         count_frame++;
     }

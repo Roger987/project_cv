@@ -18,6 +18,7 @@ add_executable(main src/main.cpp
                     src/find_perspective.cpp
                     src/draw_table.cpp
                     src/generate_coords.cpp
-                    src/model_evaluation.cpp)
+                    src/model_evaluation.cpp
+                    src/generate_mask.cpp)
 
 target_link_libraries(main ${OpenCV_LIBS})

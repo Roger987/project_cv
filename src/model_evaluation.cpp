@@ -36,10 +36,12 @@ double getIoU(cv::Vec4f ground_truth, cv::Vec4f predicted){
 
 }
 
-void evaluate_one_frame(std::string path_true, std::string path_predicted, std::vector<int>& evaluations){
+void evaluate_one_frame(std::string path_true, std::string path_predicted, std::vector<int>& evaluations, int current_class){
 
     std::vector<cv::Vec4f> true_balls;
     std::vector<cv::Vec4f> predicted_balls;
+    std::vector<int> true_classes;
+    std::vector<int> predicted_classes;
 
     std::ifstream file_true(path_true);
     std::ifstream file_predicted(path_predicted);
@@ -51,6 +53,7 @@ void evaluate_one_frame(std::string path_true, std::string path_predicted, std::
         int x, y, w, h, id;
         iss >> x >> y >> w >> h >> id;
         true_balls.push_back(cv::Vec4i(x, y, w, h));
+        true_classes.push_back(id);
     }
 
     while (getline(file_predicted, line)) {
@@ -58,6 +61,7 @@ void evaluate_one_frame(std::string path_true, std::string path_predicted, std::
         int x, y, w, h, id;
         iss >> x >> y >> w >> h >> id;
         predicted_balls.push_back(cv::Vec4i(x, y, w, h));
+        predicted_classes.push_back(id);
     }
 
     // true_positive = 1
@@ -66,77 +70,69 @@ void evaluate_one_frame(std::string path_true, std::string path_predicted, std::
 
     for (size_t i = 0; i < predicted_balls.size(); i++) {
 
-        double best_iou = 0.0;
+        if (current_class == predicted_classes[i]) {
+            
+            double best_iou = 0.0;
+            int ground_truth_class = -1;
 
-        for (size_t j = 0; j < true_balls.size(); j++) {
+            for (size_t j = 0; j < true_balls.size(); j++) {
 
-            double current_iou = getIoU(true_balls[j], predicted_balls[i]);
+                double current_iou = getIoU(true_balls[j], predicted_balls[i]);
 
-            if (current_iou > best_iou) {
-                best_iou = current_iou;
+                if (current_iou > best_iou) {
+                    best_iou = current_iou;
+                    ground_truth_class = true_classes[j];
+                }
+
             }
 
-        }
+            // std::cout << best_iou << std::endl;
+            if (best_iou >= 0.5) {
+                // std::cout << ground_truth_class << " " << current_class << std::endl;
+                if (ground_truth_class == current_class) {
+                    evaluations.push_back(1);
+                } else {
+                    evaluations.push_back(2);
+                }
+            
+            } else {
+                evaluations.push_back(2);
+            }
 
-        // std::cout << best_iou << std::endl;
-        if (best_iou >= 0.5) {
-            // true_positive++;
-            evaluations.push_back(1);
-        } else {
-            // false_positive++;
-            evaluations.push_back(2);
         }
 
     }
 
     for (size_t i = 0; i < true_balls.size(); i++) {
 
-        double best_iou = 0.0;
+        if (current_class == true_classes[i]) {
 
-        for (size_t j = 0; j < predicted_balls.size(); j++) {
+            double best_iou = 0.0;
 
-            double current_iou = getIoU(true_balls[i], predicted_balls[j]);
+            for (size_t j = 0; j < predicted_balls.size(); j++) {
 
-            if (current_iou > best_iou) {
-                best_iou = current_iou;
+                double current_iou = getIoU(true_balls[i], predicted_balls[j]);
+
+                if (current_iou > best_iou) {
+                    best_iou = current_iou;
+                }
+
             }
 
-        }
+            // std::cout << best_iou << std::endl;
+            if (best_iou < 0.5) {
+                evaluations.push_back(3);
+            }
 
-        // std::cout << best_iou << std::endl;
-        if (best_iou < 0.5) {
-            // false_negative++;
-            evaluations.push_back(3);
         }
 
     }
 
 }
 
-void read_mask(std::string path_mask){
-    cv::Mat mask = cv::imread(path_mask);
-    std::cout << "SIZE ONE PIXEL" << std::endl;
-    // std::cout << mask.at<cv::Vec3b>(mask.cols/2, mask.rows/2) << std::endl;
-    for (int i = 0; i < mask.rows; ++i) {
-            for (int j = 0; j < mask.cols; ++j) {
-                // Access pixel value at (i,j)
-                if (mask.at<cv::Vec3b>(i, j)[0] != 0 && mask.at<cv::Vec3b>(i, j)[0] != 5){
-                    cv::Vec3b pixel = mask.at<cv::Vec3b>(i, j);
-                
-                    // Print the pixel value
-                    std::cout << "Pixel value at (" << i << "," << j << "): ";
-                    for (int c = 0; c < mask.channels(); ++c) {
-                        std::cout << static_cast<int>(pixel[c]) << " ";
-                    }
-                    std::cout << std::endl;
-                }
-            }
-        }
-}
+double mAP() {
 
-void evaluate() {
-
-    std::string filename = "../docs/paths.txt";
+    std::string filename = "../docs/paths_localization.txt";
     std::ifstream file(filename);
     std::vector<std::string> paths;
 
@@ -149,85 +145,140 @@ void evaluate() {
         paths.push_back(path);
     }
 
-    std::vector<int> evaluations;
+    std::vector<int> classes = {1,2,3,4};
+    std::vector<double> avg_precisions;
 
-    for (size_t i = 0; i < paths.size(); i += 2) {
-        evaluate_one_frame(paths[i], paths[i+1], evaluations);
-    }
+    for (auto& current_class: classes) {
 
-    int total_gt = 0; // Total ground truth
-    for (size_t i = 0; i < evaluations.size(); i ++) {
-        // std::cout << evaluations[i] << std::endl;
-        if (evaluations[i] == 1 || evaluations[i] == 3) {
-            total_gt++;
+        std::vector<int> evaluations;
+
+        for (size_t i = 0; i < paths.size(); i += 2) {
+            evaluate_one_frame(paths[i], paths[i+1], evaluations, current_class);
         }
-    }
-
-    std::vector<float> precision;
-    std::vector<float> recall;
-
-    float tp = 0.0;
-    float fp = 0.0;
-    float fn = 0.0;    
-
-    for (size_t i = 0; i < evaluations.size(); i ++) {
-        // std::cout << evaluations[i] << std::endl;
-        if (evaluations[i] == 1) {
-            tp++;
-        } else if (evaluations[i] == 2){
-            fp++;
-        } else {
-            fn++;
-        }
-
-        precision.push_back(tp/(tp+fp));
-        recall.push_back(tp/total_gt);
-    }
-
-    std::vector<double> rt = {0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
-    std::vector<double> pt;
-    for (size_t i = 0; i < rt.size(); i++) {
-        double max_precision = 0;
-        for (size_t j = 0; j < recall.size(); j++){
-            if (recall[j] >= rt[i] && precision[j] > max_precision){
-                max_precision = precision[j];
+        
+        int total_gt = 0; // Total ground truth
+        for (size_t i = 0; i < evaluations.size(); i ++) {
+            
+            if (evaluations[i] == 1 || evaluations[i] == 3) {
+                total_gt++;
             }
         }
-        pt.push_back(max_precision);
+
+        std::vector<float> precision;
+        std::vector<float> recall;
+
+        float tp = 0.0;
+        float fp = 0.0;
+        float fn = 0.0;    
+        
+        for (size_t i = 0; i < evaluations.size(); i ++) {
+            // std::cout << evaluations[i] << std::endl;
+            if (evaluations[i] == 1) {
+                tp++;
+            } else if (evaluations[i] == 2){
+                fp++;
+            } else {
+                fn++;
+            }
+            
+            precision.push_back(tp/(tp+fp));
+            recall.push_back(tp/total_gt);
+        }
+
+        std::vector<double> rt = {0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
+        std::vector<double> pt;
+        for (size_t i = 0; i < rt.size(); i++) {
+            double max_precision = 0;
+            for (size_t j = 0; j < recall.size(); j++){
+                if (recall[j] >= rt[i] && precision[j] > max_precision){
+                    max_precision = precision[j];
+                }
+            }
+            pt.push_back(max_precision);
+        }
+
+        double average_precision = 0.0;
+        for (size_t i = 0; i < pt.size(); i ++) {
+            average_precision += pt[i]/11;
+        }
+
+        avg_precisions.push_back(average_precision);
+
     }
 
-    double average_precision = 0.0;
-    for (size_t i = 0; i < pt.size(); i ++) {
-        std::cout << rt[i] << " " << pt[i] << std::endl;
-        average_precision += pt[i]/11;
+    std::cout << "AVERAGE PRECISION: " << avg_precisions[0] << " " << avg_precisions[1] << " " << avg_precisions[2] << " " << avg_precisions[3] << std::endl;
+    double mAP_value = 0.0;
+    for (auto& avg_precision: avg_precisions) {
+        mAP += avg_precision/classes.size();
+    }
+    std::cout << mAP_value << std::endl;
+
+    return mAP_value;
+}
+
+double iou_segmentation(std::string ground_truth_path, std::string predicted_path, int current_class){
+
+    cv::Mat ground_truth = cv::imread(ground_truth_path);
+    cv::Mat predicted = cv::imread(predicted_path);
+
+    int tp = 0;
+    int fp = 0;
+    int fn = 0;
+
+    for (size_t i = 0; i < predicted.rows; i++) {
+        
+        for (size_t j = 0; j < predicted.cols; j++) {
+
+            if (predicted.at<cv::Vec3b>(i, j)[0] == current_class && predicted.at<cv::Vec3b>(i, j)[0] == current_class) {
+                tp++;
+            } else if (predicted.at<cv::Vec3b>(i, j)[0] == current_class && predicted.at<cv::Vec3b>(i, j)[0] != current_class){
+                fp++;
+            } else if (predicted.at<cv::Vec3b>(i, j)[0] != current_class && predicted.at<cv::Vec3b>(i, j)[0] == current_class) {
+                fn++;
+            }
+
+        }
+
     }
 
-    std::cout << "AVERAGE PRECISION: " << average_precision << std::endl;
+    double iou = tp/(tp+fp+fn);
+    return iou; 
 
-    // read_mask("../Dataset/game1_clip1/masks/frame_first.png");
+}
 
-    // int width = 800;
-    // int height = 600;
-    // cv::Mat plot_image = cv::Mat::zeros(height, width, CV_8UC3);
+void read_mask(std::string filename){
 
-    // // Draw the axes
-    // cv::line(plot_image, cv::Point(50, 550), cv::Point(750, 550), cv::Scalar(255, 255, 255), 2);
-    // cv::line(plot_image, cv::Point(50, 550), cv::Point(50, 50), cv::Scalar(255, 255, 255), 2);
+    std::string filename;
+    std::ifstream file(filename);
+    std::vector<std::string> paths;
 
-    // // Label the axes
-    // cv::putText(plot_image, "Recall", cv::Point(360, 580), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 255, 255), 2);
-    // cv::putText(plot_image, "Precision", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 255, 255), 2);
+    std::string line;
 
-    // // Plot the points
-    // for (size_t i = 0; i < precision.size(); i++) {
-    //     int x = 50 + static_cast<int>(recall[i] * 700); // Scale recall to fit width
-    //     int y = 550 - static_cast<int>(precision[i] * 500); // Scale precision to fit height
+    while (getline(file, line)) {
+        std::istringstream iss(line);
+        std::string path;
+        iss >> path;
+        paths.push_back(path);
+    }
 
-    //     cv::circle(plot_image, cv::Point(x, y), 5, cv::Scalar(0, 0, 255), -1);
-    // }
+    std::vector<int> classes = {0,1,2,3,4,5};
+    // double mIoU = 0.0;
 
-    // // Show the plot
-    // cv::imshow("Precision-Recall Plot", plot_image);
-    // cv::waitKey(0);
+    for (auto& current_class: classes) {
+
+        for (size_t i = 0; i < paths.size(); i += 2) {
+
+            double iou = iou_segmentation(paths[i], paths[i+1], current_class);
+        }
+
+    }
+
+}
+
+
+void evaluate() {
+
+    map_value = mAP();
+    read_mask("../docs/paths_localization.txt");
 
 };
