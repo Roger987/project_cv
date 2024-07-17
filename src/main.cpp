@@ -17,7 +17,7 @@
 #include "find_perspective.h"
 #include "draw_table.hpp"
 #include "generate_coords.hpp"
-// #include "model_evaluation.hpp"
+#include "model_evaluation.hpp"
 
 using namespace cv;
 using namespace std;
@@ -92,12 +92,15 @@ int main(int argc, char** argv){
         multitracker.push_back(balltracker);
     }
 
+    // Trajectories vector
     std::vector<std::vector<cv::Point2f>> trajectories(coord_balls.size());
 
-    // int count_frame = 1;
+    int count_frame = 1;
+    int video_length = int(cap.get(cv::CAP_PROP_FRAME_COUNT));
 
     // Reset to the first frame
     cap.set(cv::CAP_PROP_POS_FRAMES, 0);
+    // Output video
     VideoWriter output("../Dataset/" + tokens[2] + "/output.mp4", VideoWriter::fourcc('m', 'p', '4', 'v'), 30.0, Size(src.cols,src.rows));
  
     while(true){
@@ -109,11 +112,11 @@ int main(int argc, char** argv){
             break;
         }
 
-    //     if (count_frame == 1) {
-    //         generateCoords(coord_balls, "../Dataset/" + tokens[2] + "/bounding_boxes/frame_first");
-    //     } else if (count_frame == total_frame - 1){
-    //         generateCoords(coord_balls, "../Dataset/" + tokens[2] + "/bounding_boxes/frame_last");
-    //     }
+        if (count_frame == 1) {
+            generateCoords(coord_balls, "../Dataset/" + tokens[2] + "/bounding_boxes/frame_first");
+        } else if (count_frame == video_length - 1){
+            generateCoords(coord_balls, "../Dataset/" + tokens[2] + "/bounding_boxes/frame_last");
+        }
 
         if (upvision == 1){
             
@@ -167,19 +170,17 @@ int main(int argc, char** argv){
         } else {
             output.write(frame);
         }
+
+        count_frame++;
     }
     
     cap.release();
     output.release();
     destroyAllWindows();
 
-    // MODEL EVALUATION
-
+    // Model Evaluation
     cout << tokens[2] << endl;
-    // evaluate();
-    // evaluate("../Dataset/" + tokens[2] + "/bounding_boxes/frame_first_bbox.txt", "../Dataset/" + tokens[2] + "/bounding_boxes/frame_first.txt", tokens[2], 1);
-    // cout << "\n" << endl;
-    // evaluate("../Dataset/" + tokens[2] + "/bounding_boxes/frame_last_bbox.txt", "../Dataset/" + tokens[2] + "/bounding_boxes/frame_last.txt", tokens[2], 0);
-    // cout << "\n\n" << endl;
+    evaluate();
+
     return 0;
 }
