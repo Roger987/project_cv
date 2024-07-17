@@ -78,7 +78,7 @@ void evaluate_one_frame(std::string path_true, std::string path_predicted, std::
 
         }
 
-        std::cout << best_iou << std::endl;
+        // std::cout << best_iou << std::endl;
         if (best_iou >= 0.5) {
             // true_positive++;
             evaluations.push_back(1);
@@ -113,6 +113,27 @@ void evaluate_one_frame(std::string path_true, std::string path_predicted, std::
 
 }
 
+void read_mask(std::string path_mask){
+    cv::Mat mask = cv::imread(path_mask);
+    std::cout << "SIZE ONE PIXEL" << std::endl;
+    // std::cout << mask.at<cv::Vec3b>(mask.cols/2, mask.rows/2) << std::endl;
+    for (int i = 0; i < mask.rows; ++i) {
+            for (int j = 0; j < mask.cols; ++j) {
+                // Access pixel value at (i,j)
+                if (mask.at<cv::Vec3b>(i, j)[0] != 0 && mask.at<cv::Vec3b>(i, j)[0] != 5){
+                    cv::Vec3b pixel = mask.at<cv::Vec3b>(i, j);
+                
+                    // Print the pixel value
+                    std::cout << "Pixel value at (" << i << "," << j << "): ";
+                    for (int c = 0; c < mask.channels(); ++c) {
+                        std::cout << static_cast<int>(pixel[c]) << " ";
+                    }
+                    std::cout << std::endl;
+                }
+            }
+        }
+}
+
 void evaluate() {
 
     std::string filename = "../docs/paths.txt";
@@ -134,27 +155,78 @@ void evaluate() {
         evaluate_one_frame(paths[i], paths[i+1], evaluations);
     }
 
-    // for (size_t i = 0; i < evaluations.size(); i ++) {
-    //     std::cout << evaluations[i] << std::endl;
-    // }
+    int total_gt = 0; // Total ground truth
+    for (size_t i = 0; i < evaluations.size(); i ++) {
+        // std::cout << evaluations[i] << std::endl;
+        if (evaluations[i] == 1 || evaluations[i] == 3) {
+            total_gt++;
+        }
+    }
+
+    std::vector<float> precision;
+    std::vector<float> recall;
+
+    float tp = 0.0;
+    float fp = 0.0;
+    float fn = 0.0;    
+
+    for (size_t i = 0; i < evaluations.size(); i ++) {
+        // std::cout << evaluations[i] << std::endl;
+        if (evaluations[i] == 1) {
+            tp++;
+        } else if (evaluations[i] == 2){
+            fp++;
+        } else {
+            fn++;
+        }
+
+        precision.push_back(tp/(tp+fp));
+        recall.push_back(tp/total_gt);
+    }
+
+    std::vector<double> rt = {0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
+    std::vector<double> pt;
+    for (size_t i = 0; i < rt.size(); i++) {
+        double max_precision = 0;
+        for (size_t j = 0; j < recall.size(); j++){
+            if (recall[j] >= rt[i] && precision[j] > max_precision){
+                max_precision = precision[j];
+            }
+        }
+        pt.push_back(max_precision);
+    }
+
+    double average_precision = 0.0;
+    for (size_t i = 0; i < pt.size(); i ++) {
+        std::cout << rt[i] << " " << pt[i] << std::endl;
+        average_precision += pt[i]/11;
+    }
+
+    std::cout << "AVERAGE PRECISION: " << average_precision << std::endl;
+
+    // read_mask("../Dataset/game1_clip1/masks/frame_first.png");
 
     // int width = 800;
     // int height = 600;
     // cv::Mat plot_image = cv::Mat::zeros(height, width, CV_8UC3);
 
+    // // Draw the axes
     // cv::line(plot_image, cv::Point(50, 550), cv::Point(750, 550), cv::Scalar(255, 255, 255), 2);
     // cv::line(plot_image, cv::Point(50, 550), cv::Point(50, 50), cv::Scalar(255, 255, 255), 2);
 
+    // // Label the axes
     // cv::putText(plot_image, "Recall", cv::Point(360, 580), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 255, 255), 2);
     // cv::putText(plot_image, "Precision", cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255, 255, 255), 2);
 
+    // // Plot the points
+    // for (size_t i = 0; i < precision.size(); i++) {
+    //     int x = 50 + static_cast<int>(recall[i] * 700); // Scale recall to fit width
+    //     int y = 550 - static_cast<int>(precision[i] * 500); // Scale precision to fit height
 
-    // for (const auto& pr : evaluations) {
-    //     int x = 50 + static_cast<int>(pr[1] * 700);
-    //     int y = 550 - static_cast<int>(pr[0] * 500);
     //     cv::circle(plot_image, cv::Point(x, y), 5, cv::Scalar(0, 0, 255), -1);
     // }
 
+    // // Show the plot
     // cv::imshow("Precision-Recall Plot", plot_image);
     // cv::waitKey(0);
 

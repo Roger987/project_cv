@@ -83,7 +83,7 @@ int histogram_cal(cv::Mat img){
     //std::cout << 100*calculateEntropy(hist)/8.0 << std::endl;
     if (calculateEntropy(hist) >= 0.6*max_entropy){
         //Balls with stripes
-        if(whitePercentage >= 5 && whitePercentage <= 15){
+        if(whitePercentage >= 3 && whitePercentage <= 15){
             return 4;
         }
         //White ball
@@ -103,10 +103,10 @@ void detectBalls(cv::Mat& img, cv::Mat& output, int segmentation, std::vector<cv
     cv::Mat src = img.clone();
     cv::cvtColor(src, src, cv::COLOR_BGR2GRAY);
     cv::GaussianBlur(src, src, cv::Size(11, 11), 1);
-    cv::adaptiveThreshold(src, src, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY_INV, 11, 2);
+    cv::adaptiveThreshold(src, src, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY_INV, 11, 3);
 
     std::vector<cv::Vec3f> circles;
-    cv::HoughCircles(src, circles, cv::HOUGH_GRADIENT, 1, 18, 150, 12, 7, 16);
+    cv::HoughCircles(src, circles, cv::HOUGH_GRADIENT, 0.9, 11, 150, 10, 8, 15);
 
     std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>> white_balls;
     std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>> solid_balls;
@@ -192,7 +192,7 @@ void detectBlackBall(std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, 
             int totalPixels = gray.rows * gray.cols;
             cv::threshold(gray, thresh, 50, 255, cv::THRESH_BINARY);
             std::get<3>(ball_info) = totalPixels-cv::countNonZero(thresh);
-            std::cout << "Number of Black pixels: " <<std::get<3>(ball_info)<<std::endl;
+            // std::cout << "Number of Black pixels: " <<std::get<3>(ball_info)<<std::endl;
             
         }
 
