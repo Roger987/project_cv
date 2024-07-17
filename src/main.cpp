@@ -45,7 +45,7 @@ int main(int argc, char** argv){
 
     // Flags for the output
     int segmentation = 0;
-    int upvision = 1;
+    int upvision = 0;
 
     // Get the first frame of the video
     Mat first_frame, src, original;
@@ -65,11 +65,7 @@ int main(int argc, char** argv){
 
     // Gets the contours of the table
     vector<vector<Point>> contours = detectContours(first_frame.rows, first_frame.cols, corners);
-    
-    // fillPoly(src, corners, cv::Scalar(49, 124, 76));
     drawContours(src, contours, -1, Scalar(0, 255, 255), 2);
-    // imshow("SRC", src);
-    // waitKey(0);
 
     // Creates a mask to isolate the table area in order to facilitate the objects (balls) detection
     Mat mask = Mat::zeros(src.size(), CV_8UC3);
@@ -118,21 +114,6 @@ int main(int argc, char** argv){
     //     } else if (count_frame == total_frame - 1){
     //         generateCoords(coord_balls, "../Dataset/" + tokens[2] + "/bounding_boxes/frame_last");
     //     }
- 
-        // for (size_t i = 0; i < multitracker.size(); i++){
-        //     bool updated_bbx = multitracker[i]->update(frame, tracked_balls_bbx[i]);
-        //     if (updated_bbx){
-        //         if (coord_balls[i][3] == 1) {
-        //             cv::rectangle(frame, tracked_balls_bbx[i], cv::Scalar(255, 255, 255), 2);
-        //         } else if (coord_balls[i][3] == 2) {
-        //             cv::rectangle(frame, tracked_balls_bbx[i], cv::Scalar(0, 0, 0), 2);
-        //         } else if (coord_balls[i][3] == 3) {
-        //             cv::rectangle(frame, tracked_balls_bbx[i], cv::Scalar(255, 127, 0), 2);
-        //         } else if (coord_balls[i][3] == 4) {
-        //             cv::rectangle(frame, tracked_balls_bbx[i], cv::Scalar(0, 0, 255), 2);
-        //         }
-        //     }
-        // }
 
         if (upvision == 1){
             
