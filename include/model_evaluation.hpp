@@ -5,7 +5,9 @@
 #include <iostream>
 #include <fstream>
 
-void evaluate();
+double meanIoU(std::string path_predicted, std::string path_ground_truth);
+
+double mAP(std::string path_predicted, std::string path_ground_truth);
 
 
 #endif 

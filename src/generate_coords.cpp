@@ -4,8 +4,6 @@
 
 void generateCoords(std::vector<cv::Vec4f> coord_balls, std::string filename) {
 
-    filename = filename + ".txt";
-
     std::ofstream myfile(filename);
 
     if (!myfile.is_open()) {
@@ -18,8 +16,6 @@ void generateCoords(std::vector<cv::Vec4f> coord_balls, std::string filename) {
     for (auto& ball: coord_balls){
         myfile << round(ball[0]) - round(ball[2]) << " " << round(ball[1]) - round(ball[2]) << " " << round(2*round(ball[2])) << " " << round(2*round(ball[2])) << " " << ball[3] << std::endl;
     }
-
-    //myfile << test << std::endl;
 
     myfile.close();
 

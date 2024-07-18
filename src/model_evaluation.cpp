@@ -36,7 +36,7 @@ double getIoU(cv::Vec4f ground_truth, cv::Vec4f predicted){
 
 }
 
-void evaluate_one_frame(std::string path_true, std::string path_predicted, std::vector<int>& evaluations, int current_class){
+void evaluate_one_frame(std::string path_true, std::string path_predicted, std::vector<std::vector<float>>& evaluations, int current_class){
 
     std::vector<cv::Vec4f> true_balls;
     std::vector<cv::Vec4f> predicted_balls;
@@ -90,13 +90,13 @@ void evaluate_one_frame(std::string path_true, std::string path_predicted, std::
             if (best_iou >= 0.5) {
                 // std::cout << ground_truth_class << " " << current_class << std::endl;
                 if (ground_truth_class == current_class) {
-                    evaluations.push_back(1);
+                    evaluations.push_back({1,static_cast<float>(best_iou)});
                 } else {
-                    evaluations.push_back(2);
+                    evaluations.push_back({2,static_cast<float>(best_iou)});
                 }
             
             } else {
-                evaluations.push_back(2);
+                evaluations.push_back({2,static_cast<float>(best_iou)});
             }
 
         }
@@ -121,7 +121,7 @@ void evaluate_one_frame(std::string path_true, std::string path_predicted, std::
 
             // std::cout << best_iou << std::endl;
             if (best_iou < 0.5) {
-                evaluations.push_back(3);
+                evaluations.push_back({3,static_cast<float>(best_iou)});
             }
 
         }
@@ -130,36 +130,39 @@ void evaluate_one_frame(std::string path_true, std::string path_predicted, std::
 
 }
 
-double mAP() {
+double mAP(std::string path_predicted, std::string path_ground_truth) {
 
-    std::string filename = "../docs/paths_localization.txt";
-    std::ifstream file(filename);
-    std::vector<std::string> paths;
+    // std::string filename = "../docs/paths_localization.txt";
+    // std::ifstream file(filename);
+    // std::vector<std::string> paths;
 
-    std::string line;
+    // std::string line;
 
-    while (getline(file, line)) {
-        std::istringstream iss(line);
-        std::string path;
-        iss >> path;
-        paths.push_back(path);
-    }
+    // while (getline(file, line)) {
+    //     std::istringstream iss(line);
+    //     std::string path;
+    //     iss >> path;
+    //     paths.push_back(path);
+    // }
 
     std::vector<int> classes = {1,2,3,4};
     std::vector<double> avg_precisions;
 
     for (auto& current_class: classes) {
 
-        std::vector<int> evaluations;
+        std::vector<std::vector<float>> evaluations;
 
-        for (size_t i = 0; i < paths.size(); i += 2) {
-            evaluate_one_frame(paths[i], paths[i+1], evaluations, current_class);
-        }
+        evaluate_one_frame(path_ground_truth, path_predicted, evaluations, current_class);
+
+        std::sort(evaluations.begin(), evaluations.end(), 
+              [](const std::vector<float>& a, const std::vector<float>& b) {
+                  return a[1] > b[1]; 
+              });
         
         int total_gt = 0; // Total ground truth
         for (size_t i = 0; i < evaluations.size(); i ++) {
             
-            if (evaluations[i] == 1 || evaluations[i] == 3) {
+            if (evaluations[i][0] == 1 || evaluations[i][0] == 3) {
                 total_gt++;
             }
         }
@@ -173,9 +176,9 @@ double mAP() {
         
         for (size_t i = 0; i < evaluations.size(); i ++) {
             // std::cout << evaluations[i] << std::endl;
-            if (evaluations[i] == 1) {
+            if (evaluations[i][0] == 1) {
                 tp++;
-            } else if (evaluations[i] == 2){
+            } else if (evaluations[i][0] == 2){
                 fp++;
             } else {
                 fn++;
@@ -206,79 +209,69 @@ double mAP() {
 
     }
 
-    std::cout << "AVERAGE PRECISION: " << avg_precisions[0] << " " << avg_precisions[1] << " " << avg_precisions[2] << " " << avg_precisions[3] << std::endl;
+    // std::cout << "AVERAGE PRECISION: " << avg_precisions[0] << " " << avg_precisions[1] << " " << avg_precisions[2] << " " << avg_precisions[3] << std::endl;
     double mAP_value = 0.0;
     for (auto& avg_precision: avg_precisions) {
-        mAP += avg_precision/classes.size();
+        mAP_value += avg_precision/classes.size();
     }
-    std::cout << mAP_value << std::endl;
+    std::cout << "mAP: " << mAP_value << std::endl;
 
     return mAP_value;
 }
 
-double iou_segmentation(std::string ground_truth_path, std::string predicted_path, int current_class){
 
-    cv::Mat ground_truth = cv::imread(ground_truth_path);
-    cv::Mat predicted = cv::imread(predicted_path);
 
-    int tp = 0;
-    int fp = 0;
-    int fn = 0;
+double iou_segmentation(cv::Mat ground_truth, cv::Mat predicted, int current_class){
+
+    double tp = 0;
+    double fp = 0;
+    double fn = 0;
 
     for (size_t i = 0; i < predicted.rows; i++) {
         
         for (size_t j = 0; j < predicted.cols; j++) {
-
-            if (predicted.at<cv::Vec3b>(i, j)[0] == current_class && predicted.at<cv::Vec3b>(i, j)[0] == current_class) {
+            if (predicted.at<uchar>(i, j) == current_class && ground_truth.at<uchar>(i, j) == current_class) {
                 tp++;
-            } else if (predicted.at<cv::Vec3b>(i, j)[0] == current_class && predicted.at<cv::Vec3b>(i, j)[0] != current_class){
+            } else if (predicted.at<uchar>(i, j) == current_class && ground_truth.at<uchar>(i, j) != current_class){
                 fp++;
-            } else if (predicted.at<cv::Vec3b>(i, j)[0] != current_class && predicted.at<cv::Vec3b>(i, j)[0] == current_class) {
+            } else if (predicted.at<uchar>(i, j) != current_class && ground_truth.at<uchar>(i, j) == current_class) {
                 fn++;
-            }
-
+            } 
         }
 
     }
 
-    double iou = tp/(tp+fp+fn);
+    if (tp+fp+fn == 0) {
+        return 0;
+    }
+
+    double iou = static_cast<double>(tp)/(tp+fp+fn);
     return iou; 
 
 }
 
-void read_mask(std::string filename){
+double meanIoU(std::string path_predicted, std::string path_ground_truth){
 
-    std::string filename;
-    std::ifstream file(filename);
-    std::vector<std::string> paths;
-
-    std::string line;
-
-    while (getline(file, line)) {
-        std::istringstream iss(line);
-        std::string path;
-        iss >> path;
-        paths.push_back(path);
-    }
+    cv::Mat ground_truth = cv::imread(path_ground_truth, cv::IMREAD_GRAYSCALE);
+    cv::Mat predicted = cv::imread(path_predicted, cv::IMREAD_GRAYSCALE);
 
     std::vector<int> classes = {0,1,2,3,4,5};
-    // double mIoU = 0.0;
+    
+    std::vector<double> iou_per_class;
 
-    for (auto& current_class: classes) {
-
-        for (size_t i = 0; i < paths.size(); i += 2) {
-
-            double iou = iou_segmentation(paths[i], paths[i+1], current_class);
-        }
-
+    for (auto& current_class: classes){
+        double iou = iou_segmentation(ground_truth, predicted, current_class);
+        iou_per_class.push_back(iou);
     }
 
+    double mIou = 0.0;
+    for (auto& iou: iou_per_class){
+        // std::cout << iou << std::endl;
+        mIou += iou/classes.size();
+    }
+
+    std::cout << "mIoU: " << mIou << std::endl;
+
+    return mIou;
+
 }
-
-
-void evaluate() {
-
-    map_value = mAP();
-    read_mask("../docs/paths_localization.txt");
-
-};

@@ -40,8 +40,6 @@ int histogram_cal(cv::Mat img){
 
     cv::Mat thresh;
     cv::threshold(gray, thresh, 200, 255, cv::THRESH_BINARY);
-    // cv::imshow("ball1", thresh);
-    // cv::waitKey(0);
 
     int whitePixelCount = cv::countNonZero(thresh);
     // int maxValue = 255; // Assuming it's a grayscale image
@@ -83,8 +81,13 @@ int histogram_cal(cv::Mat img){
     }
 
     double max_entropy = - std::log2(1.0/256.0);
-    //std::cout << 100*calculateEntropy(hist)/8.0 << std::endl;
     if (calculateEntropy(hist) >= 0.6*max_entropy){
+        // std::vector<std::vector<cv::Point>> contours;
+        // cv::findContours(gray, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+        // cv::Mat contourImage = img.clone();
+        // cv::drawContours(contourImage, contours, -1, cv::Scalar(0, 255, 0), 2);
+        // cv::imshow("Contours", contourImage);
+        // cv::waitKey();
         //Balls with stripes
         if(whitePercentage >= 3 && whitePercentage <= 20){
             return 4;
@@ -112,14 +115,11 @@ void detectBalls(cv::Mat& img, cv::Mat& output, int segmentation, std::vector<cv
     cv::Mat src = img.clone();
     cv::cvtColor(src, src, cv::COLOR_BGR2GRAY);
     cv::adaptiveThreshold(src, src, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 11, 3);
-    cv::erode(src, src, 11);
-    cv::dilate(src, src, 7);
-    cv::GaussianBlur(src, src, cv::Size(11, 11), 1);
-    cv::imshow("src", src);
+    cv::GaussianBlur(src, src, cv::Size(7, 7), 1);
 
     std::vector<cv::Vec3f> circles;
     //cv::HoughCircles(src, circles, cv::HOUGH_GRADIENT, 0.8, 11, 130, 13, 8, 15);
-    cv::HoughCircles(src, circles, cv::HOUGH_GRADIENT, 0.9, 11, 130, 13, 8, 15);
+    cv::HoughCircles(src, circles, cv::HOUGH_GRADIENT, 0.8, 16, 130, 13, 8, 15);
 
     std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>> white_balls;
     std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>> solid_balls;
@@ -127,7 +127,6 @@ void detectBalls(cv::Mat& img, cv::Mat& output, int segmentation, std::vector<cv
     for(const auto& c : circles){
         float radius = c[2]; 
         cv::Rect ball_bbox(c[0] - c[2], c[1] - c[2], radius * 2, radius * 2);
-        //cv::Mat roi = src(ball_bbox);
         cv::Mat roi = output(ball_bbox);
         cv::Scalar mean, stddev;
         cv::meanStdDev(roi, mean, stddev);

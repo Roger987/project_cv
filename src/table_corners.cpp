@@ -21,7 +21,6 @@ double pointLineDist(cv::Point pt, cv::Vec2f line){
 
 }
 
-
 cv::Point findIntersection(cv::Vec2f line1, cv::Vec2f line2){
     
     float ct1 = cosf(line1[1]);     

@@ -59,7 +59,12 @@ int main(int argc, char** argv){
     detectTable(first_frame, first_frame);
     
     // Gets the corners of the table based on the detected table region
-    vector<vector<Point>> corners = tableCorners(first_frame);
+    // vector<vector<Point>> corners = tableCorners(first_frame);
+    Mat croppedoriginal = Mat::zeros(src.size(), CV_8UC3);
+    original.copyTo(croppedoriginal,first_frame);
+
+    // Gets the corners of the table based on the detected table region
+    vector<vector<Point>> corners = tableCorners(croppedoriginal);
 
     // Find the matrix to the geometric transformation
     Mat M = findPerspective(src, corners);
@@ -79,6 +84,19 @@ int main(int argc, char** argv){
     original.copyTo(cropped,mask);
     std::vector<cv::Ptr<cv::Tracker>> multitracker;
     detectBalls(cropped, original, segmentation, coord_balls);
+    
+    //Calculate average radius
+    float avg_radius = 0;
+    for(size_t i = 0; i < coord_balls.size(); i++){
+        avg_radius += coord_balls[i][2];
+    }
+    avg_radius = int(avg_radius/coord_balls.size());
+    //cout << avg_radius << endl;
+    //update all balls parameters
+    for(size_t i = 0; i < coord_balls.size(); i++){
+        coord_balls[i][2] = avg_radius;
+    }
+
     std::vector<cv::Rect> tracked_balls_bbx;
     for (size_t i = 0; i < coord_balls.size(); i++){
         int x=coord_balls[i][0];
@@ -109,14 +127,18 @@ int main(int argc, char** argv){
         Mat frame;
         cap >> frame;
         Mat segmented_frame = frame.clone();
+        
         if (frame.empty()){
             break;
         }
 
+        Mat cropped_frame = Mat::zeros(frame.size(), CV_8UC3);
+        frame.copyTo(cropped_frame,mask);
+
         if (upvision == 1){
             
             for (size_t i = 0; i < multitracker.size(); i++){
-                multitracker[i]->update(frame, tracked_balls_bbx[i]);
+                multitracker[i]->update(cropped_frame, tracked_balls_bbx[i]);
             }
 
             // Mat table2d = Mat(400, 800, CV_8UC3, Scalar(255, 255, 255));
@@ -135,7 +157,7 @@ int main(int argc, char** argv){
             drawContours(frame, contours, -1, Scalar(0, 255, 255), 2);
 
             for (size_t i = 0; i < multitracker.size(); i++){
-                bool updated_bbx = multitracker[i]->update(frame, tracked_balls_bbx[i]);
+                bool updated_bbx = multitracker[i]->update(cropped_frame, tracked_balls_bbx[i]);
                 if (updated_bbx){
                     Scalar color;
                     if (coord_balls[i][3] == 1) {
@@ -151,7 +173,7 @@ int main(int argc, char** argv){
                     if (segmentation) {
                         int centerX = tracked_balls_bbx[i].x + tracked_balls_bbx[i].width / 2;
                         int centerY = tracked_balls_bbx[i].y + tracked_balls_bbx[i].height / 2;
-                        cv::circle(segmented_frame, Point(centerX, centerY), 10, color, cv::FILLED);
+                        cv::circle(segmented_frame, Point(centerX, centerY), avg_radius, color, cv::FILLED);
                     } else {
                         cv::rectangle(frame, tracked_balls_bbx[i], color, 2);
                     }
@@ -166,13 +188,19 @@ int main(int argc, char** argv){
             output.write(frame);
         }
 
-        // if (count_frame == 1) {
-        //     generateCoords(coord_balls, "../Dataset/" + tokens[2] + "/bounding_boxes/frame_first");
-        //     generateMask(coord_balls, tracked_balls_bbx, corners, frame.cols, frame.rows, "../Dataset/" + tokens[2] + "/masks/frame_first_computed.png");
-        // } else if (count_frame == video_length - 1){
-        //     generateCoords(coord_balls, "../Dataset/" + tokens[2] + "/bounding_boxes/frame_last");
-        //     generateMask(coord_balls, tracked_balls_bbx, corners, frame.cols, frame.rows, "../Dataset/" + tokens[2] + "/masks/frame_last_computed.png");
-        // }
+        if (count_frame == 1) {
+            cout << tokens[2] << endl;
+            generateCoords(coord_balls, "../Dataset/" + tokens[2] + "/bounding_boxes/frame_first.txt");
+            generateMask(coord_balls, tracked_balls_bbx, avg_radius, corners, frame.cols, frame.rows, "../Dataset/" + tokens[2] + "/masks/frame_first_computed.png");
+            meanIoU("../Dataset/" + tokens[2] + "/masks/frame_first_computed.png", "../Dataset/" + tokens[2] + "/masks/frame_first.png");
+            mAP("../Dataset/" + tokens[2] + "/bounding_boxes/frame_first.txt","../Dataset/" + tokens[2] + "/bounding_boxes/frame_first_bbox.txt");
+        } else if (count_frame == video_length - 1){
+            generateCoords(coord_balls, "../Dataset/" + tokens[2] + "/bounding_boxes/frame_last.txt");
+            generateMask(coord_balls, tracked_balls_bbx, avg_radius, corners, frame.cols, frame.rows, "../Dataset/" + tokens[2] + "/masks/frame_last_computed.png");
+            meanIoU("../Dataset/" + tokens[2] + "/masks/frame_last_computed.png", "../Dataset/" + tokens[2] + "/masks/frame_last.png");
+            mAP("../Dataset/" + tokens[2] + "/bounding_boxes/frame_last.txt","../Dataset/" + tokens[2] + "/bounding_boxes/frame_last_bbox.txt");
+            cout << "\n\n" << endl;
+        }
 
         count_frame++;
     }
@@ -180,10 +208,6 @@ int main(int argc, char** argv){
     cap.release();
     output.release();
     destroyAllWindows();
-
-    // Model Evaluation
-    cout << tokens[2] << endl;
-    evaluate();
 
     return 0;
 }
