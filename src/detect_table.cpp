@@ -67,11 +67,12 @@ cv::Mat process_general(cv::Mat img) {
         cv::threshold(channels[i], channels[i], 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
     }
     merge(channels, output_Image);
+    // cv::imshow("After filter", output_Image);
+    // cv::waitKey(0);
     return output_Image;
-
     }
 
-cv::Mat regionGrowing(const cv::Mat image, cv::Vec3b color) {
+cv::Mat regionGrowing(const cv::Mat image, cv::Vec3b color, bool start_from_center, bool color_region) {
 
     int rows = image.rows;
     int cols = image.cols;
@@ -84,10 +85,24 @@ cv::Mat regionGrowing(const cv::Mat image, cv::Vec3b color) {
     int currentClass = 0;
 
     //per definire gli spostamenti nei vicini
-    const int dx[4] = { 1, 0, -1, 0 };
-    const int dy[4] = { 0, 1, 0, -1 };
-    int first_pixel_x = int(image.cols/2) -40;
-    int first_pixel_y = int(image.rows/2) -40;
+    int dx[8] = { 1, 0, -1, 0, 5, -5, -10, -20};
+    int dy[8] = { 0, 1, 0, -1, 5, -5, 0, 0};
+    if (!start_from_center){
+        dx[4] = 0;
+        dx[5] = 0;
+        dx[6] = 0;
+        dx[7] = 0;
+
+        dy[4] = 0;
+        dy[5] = 0;
+    }
+    int first_pixel_x = 0;
+    int first_pixel_y = 0;
+
+    if (start_from_center){
+        first_pixel_x = int(image.cols/2) -40;
+        first_pixel_y = int(image.rows/2) -40;
+    }
 
     for (int i = first_pixel_x; i < image.rows; ++i) {
         if (image.at<cv::Vec3b>(first_pixel_y, i)==color){
@@ -108,7 +123,7 @@ cv::Mat regionGrowing(const cv::Mat image, cv::Vec3b color) {
         Pixel pixel = q.front();
         q.pop();
 
-        for (int k = 0; k < 4; ++k) {
+        for (int k = 0; k < 8; ++k) {
             int nx = pixel.x + dx[k];
             int ny = pixel.y + dy[k];
 
@@ -133,6 +148,17 @@ cv::Mat regionGrowing(const cv::Mat image, cv::Vec3b color) {
             }
         }
     }    
+
+    if (color_region){
+        for (int i = 0; i < image.cols; ++i) {
+        for (int j = 0; j < image.rows; ++j) {
+            if (classes[j][i]!=-1){
+                //std::cout<<"Done untill image ";
+                output_image.at<cv::Vec3b>(j, i)={255,255,255};
+            }
+        }
+    }  
+    }
     
     return output_image;
 }
@@ -144,7 +170,7 @@ void detectTable(cv::Mat& src, cv::Mat& output){
     cv::Rect roi(x_center, y_center, 80, 80);
     cv::Mat cropped_image = src(roi);
     cv::Vec3b table_color = mostFrequentColorWithThreshold(cropped_image, 100);
-    cv::Mat output_img = regionGrowing(src, table_color);
+    cv::Mat output_img = regionGrowing(src, table_color, true, false);
     output = output_img;
     // cv::imshow("Output", output_img);
     // cv::waitKey(0);

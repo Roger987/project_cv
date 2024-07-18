@@ -26,7 +26,7 @@ using namespace std;
 int main(int argc, char** argv){   
 
     if (argc < 2){
-        std::cout << "A video filename must be provided."<<std::endl;
+        std::cout << "A video filename must be provided." << std::endl;
         return -1;
     };
 
@@ -57,11 +57,13 @@ int main(int argc, char** argv){
 
     // Uses region growing to detect the table area
     detectTable(first_frame, first_frame);
-    
-    // Gets the corners of the table based on the detected table region
-    // vector<vector<Point>> corners = tableCorners(first_frame);
     Mat croppedoriginal = Mat::zeros(src.size(), CV_8UC3);
     original.copyTo(croppedoriginal,first_frame);
+    Mat inverse_mask = regionGrowing(first_frame, Vec3b(0,0,0), false, true);
+    cv::threshold(inverse_mask, inverse_mask, 200, 255, cv::THRESH_BINARY_INV);
+
+    // imshow("cropped", inverse_mask);
+    // waitKey(0);
 
     // Gets the corners of the table based on the detected table region
     vector<vector<Point>> corners = tableCorners(croppedoriginal);
@@ -71,17 +73,20 @@ int main(int argc, char** argv){
 
     // Gets the contours of the table
     vector<vector<Point>> contours = detectContours(first_frame.rows, first_frame.cols, corners);
+
+    // fillPoly(src, corners, cv::Scalar(49, 124, 76));
     drawContours(src, contours, -1, Scalar(0, 255, 255), 2);
+    // imshow("table", src);
+    // waitKey(0);
 
     // Creates a mask to isolate the table area in order to facilitate the objects (balls) detection
     Mat mask = Mat::zeros(src.size(), CV_8UC3);
     drawContours(mask, contours, -1, cv::Scalar(255,255,255), FILLED);
     Mat cropped = Mat::zeros(src.size(), CV_8UC3);
-
     std::vector<cv::Vec4f> coord_balls;
-    
+
     // Detect balls of first frame to initialize multitracking
-    original.copyTo(cropped,mask);
+    original.copyTo(cropped,inverse_mask);
     std::vector<cv::Ptr<cv::Tracker>> multitracker;
     detectBalls(cropped, original, segmentation, coord_balls);
     
@@ -91,7 +96,7 @@ int main(int argc, char** argv){
         avg_radius += coord_balls[i][2];
     }
     avg_radius = int(avg_radius/coord_balls.size());
-    //cout << avg_radius << endl;
+
     //update all balls parameters
     for(size_t i = 0; i < coord_balls.size(); i++){
         coord_balls[i][2] = avg_radius;

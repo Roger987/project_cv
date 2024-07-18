@@ -1,12 +1,4 @@
-// #include<opencv2/highgui.hpp>
-// #include <opencv2/imgproc.hpp>
-// #include<opencv2/core.hpp>
-// #include<opencv2/imgcodecs.hpp>
-// #include <opencv2/video/tracking.hpp>
-// #include <iostream>
-
 #include "detect_balls.hpp"
-
 
 //Classification's classes:
 //1 : white ball
@@ -31,7 +23,7 @@ double calculateEntropy(const cv::Mat& histogram) {
 }
 
 int histogram_cal(cv::Mat img){
-    // cv::imshow("ball", img);
+    
     cv::Mat hsv, lab;
     cv::cvtColor(img, hsv, cv::COLOR_BGR2HSV);
     cv::cvtColor(img, lab, cv::COLOR_BGR2Lab);
@@ -42,26 +34,11 @@ int histogram_cal(cv::Mat img){
     cv::threshold(gray, thresh, 200, 255, cv::THRESH_BINARY);
 
     int whitePixelCount = cv::countNonZero(thresh);
-    // int maxValue = 255; // Assuming it's a grayscale image
-    // for (int y = 0; y < thresh.rows; ++y) {
-    //     for (int x = 0; x < thresh.cols; ++x) {
-    //         if (thresh.at<uchar>(y, x) == maxValue) {
-    //             whitePixelCount++;
-    //         }
-    //     }
-    // }
+
     int totalPixels = img.rows * img.cols;
 
-    // Calcular o percentual de pixels brancos
+    // Compute the percentage of white pixels
     double whitePercentage = (static_cast<double>(whitePixelCount) / totalPixels) * 100;
-
-    // Print the result
-    // if (whitePercentage > 15){
-        // std::cout << "Number of White pixels: " << whitePixelCount << " " << whitePercentage << std::endl;
-        // cv::imshow("ball1", img);
-        //cv::waitKey(0);
-    // }
-    // std::cout << "Number of White pixels: " << whitePixelCount << " " << whitePercentage << std::endl;
 
     int histSize = 256;
     float range[] = { 0, 256 };
@@ -69,7 +46,6 @@ int histogram_cal(cv::Mat img){
     cv::Mat hist;
     cv::calcHist( &gray, 1, 0, cv::Mat(), hist, 1, &histSize, histRange, true, false);
 
-    //int hist_w = 512, hist_h = 400;
     int hist_w = 256, hist_h = 400;
     int bin_w = cvRound( (double) hist_w/histSize );
 
@@ -82,12 +58,6 @@ int histogram_cal(cv::Mat img){
 
     double max_entropy = - std::log2(1.0/256.0);
     if (calculateEntropy(hist) >= 0.6*max_entropy){
-        // std::vector<std::vector<cv::Point>> contours;
-        // cv::findContours(gray, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-        // cv::Mat contourImage = img.clone();
-        // cv::drawContours(contourImage, contours, -1, cv::Scalar(0, 255, 0), 2);
-        // cv::imshow("Contours", contourImage);
-        // cv::waitKey();
         //Balls with stripes
         if(whitePercentage >= 3 && whitePercentage <= 20){
             return 4;
@@ -99,11 +69,6 @@ int histogram_cal(cv::Mat img){
         //balls with solid colors + black one
         else{
             return 3;
-            // cv::Scalar hsvMean = cv::mean(hsv);
-            // cv::Scalar labMean = cv::mean(lab);
-            // if (hsvMean[0] < 10 && hsvMean[1] < 10 && hsvMean[2] > 90) {
-            //     return 3; // Solid color balls
-            // }
 
         }
     } else {
@@ -117,8 +82,10 @@ void detectBalls(cv::Mat& img, cv::Mat& output, int segmentation, std::vector<cv
     cv::adaptiveThreshold(src, src, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 11, 3);
     cv::GaussianBlur(src, src, cv::Size(7, 7), 1);
 
+    // cv::imshow("src", src);
+    // cv::waitKey(0);
+
     std::vector<cv::Vec3f> circles;
-    //cv::HoughCircles(src, circles, cv::HOUGH_GRADIENT, 0.8, 11, 130, 13, 8, 15);
     cv::HoughCircles(src, circles, cv::HOUGH_GRADIENT, 0.8, 16, 130, 13, 8, 15);
 
     std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>> white_balls;
@@ -168,15 +135,9 @@ void detectWhiteBall(std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, 
     int roi_size;
     if(!white_balls.empty()){
         for (auto& ball_info : white_balls) {
-            //cv::cvtColor(img(std::get<0>(ball_info)), gray, cv::COLOR_BGR2GRAY);
+            
             roi = img(std::get<0>(ball_info));
-            // roi_size = roi.rows*roi.cols;
-            // cv::split(roi, bgr);
-            // cv::threshold(bgr[0], threshB, 210, 255, cv::THRESH_BINARY);
-            // cv::threshold(bgr[1], threshG, 210, 255, cv::THRESH_BINARY);
-            // cv::threshold(bgr[2], threshR, 210, 255, cv::THRESH_BINARY);
-
-            // std::get<3>(ball_info) = cv::countNonZero(threshB)/roi_size + cv::countNonZero(threshG)/roi_size + cv::countNonZero(threshR)/roi_size;
+            
             cv::Mat hsv;
             cv::cvtColor(roi, hsv, cv::COLOR_BGR2HSV);
 
@@ -188,9 +149,6 @@ void detectWhiteBall(std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, 
             int totalPixels = roi.rows * roi.cols;
             std::get<3>(ball_info) = whitePixelCount;
         }
-
-        
-
 
         //put in first position the ball with higher amount of white pixels
         std::sort(white_balls.begin(), white_balls.end(), [](const std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>& a, const std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>& b) {
@@ -225,20 +183,6 @@ void detectBlackBall(std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, 
 
     if(!solid_balls.empty()){
         for (auto& ball_info : solid_balls){
-            //cv::cvtColor(img(std::get<0>(ball_info)), gray, cv::COLOR_BGR2GRAY);
-            // cv::threshold(gray, thresh, 30, 255, cv::THRESH_BINARY_INV);
-            // cv::imshow("Thresh", thresh);
-            //std::get<3>(ball_info) = cv::countNonZero(thresh);
-            //std::get<3>(ball_info) = cv::countNonZero(img(std::get<0>(ball_info)));
-
-            // roi = img(std::get<0>(ball_info));
-            // roi_size = roi.rows*roi.cols;
-            // cv::split(roi, bgr);
-            // cv::threshold(bgr[0], threshB, 40, 255, cv::THRESH_BINARY_INV);
-            // cv::threshold(bgr[1], threshG, 40, 255, cv::THRESH_BINARY_INV);
-            // cv::threshold(bgr[2], threshR, 40, 255, cv::THRESH_BINARY_INV);
-
-            // std::get<3>(ball_info) = cv::countNonZero(threshB) + cv::countNonZero(threshG) + cv::countNonZero(threshR);
 
             cv::Mat roi = img(std::get<0>(ball_info));
             cv::Mat lab;
