@@ -184,6 +184,6 @@ void detectTable(cv::Mat& src, cv::Mat& output){
     cv::Vec3b table_color = mostFrequentColorWithThreshold(cropped_image, 100);
     cv::Mat output_img = regionGrowing(src, table_color, true, false);
     output = output_img;
-    cv::imshow("Output", output_img);
-    cv::waitKey(0);
+    //cv::imshow("Output", output_img);
+    //cv::waitKey(0);
 }

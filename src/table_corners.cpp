@@ -78,14 +78,25 @@ std::vector<std::vector<cv::Point>> tableCorners(cv::Mat& src){
     cvtColor(canny, color_dst, cv::COLOR_GRAY2BGR );
 
     std::vector<cv::Vec2f> lines; 
-    cv::HoughLines(canny, lines, 1, CV_PI/180, 100, 0, 0); 
+    cv::HoughLines(canny, lines, 1.2, CV_PI/180, 100, 0, 0); 
 
     // Too many similar lines, we need to remove some
     std::vector <cv::Vec2f> linesPruned;
     linesPruned.push_back(lines[0]);
     float delta = 50;
     cv::Point center(src.cols/2, src.rows/2);
-
+/*
+    for (size_t i = 0; i < lines.size(); i++) {
+        float rho = lines[i][0], theta = lines[i][1];
+        double a = cos(theta), b = sin(theta);
+        double x0 = a * rho, y0 = b * rho;
+        cv::Point pt1(cvRound(x0 + 1000 * (-b)), cvRound(y0 + 1000 * (a)));
+        cv::Point pt2(cvRound(x0 - 1000 * (-b)), cvRound(y0 - 1000 * (a)));
+        cv::line(copy_src, pt1, pt2, cv::Scalar(0, 0, 255), 3, cv::LINE_AA);
+    }
+*/
+    //cv::imshow("lines", copy_src);
+    //cv::waitKey(0);
     for (int i = 1; i < lines.size(); i++) {
         cv::Vec2f current_line = lines[i];
         bool flag = true;
