@@ -61,14 +61,22 @@ cv::Mat process_general(cv::Mat img) {
 
     cv::Mat output_Image;
     std::vector<cv::Mat> channels;
+    std::vector<cv::Mat> trash_channels;
     split(img, channels);
+    split(img, trash_channels); //to have the same dimension as channels
 
     for (int i = 0; i < channels.size(); ++i) {
-        cv::threshold(channels[i], channels[i], 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
+        //cv::equalizeHist(channels[i], channels[i]);
+        //cv::threshold(channels[i], channels[i], 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
+        double otsu_thresh_val = cv::threshold(channels[i], trash_channels[i], 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
+        double bias = 10;  
+        double new_thresh_val = otsu_thresh_val - bias;
+        cv::threshold(channels[i], channels[i], new_thresh_val, 255, cv::THRESH_BINARY);
     }
+    
     merge(channels, output_Image);
-    // cv::imshow("After filter", output_Image);
-    // cv::waitKey(0);
+    //cv::imshow("After filter", output_Image);
+    //cv::waitKey(0);
     return output_Image;
     }
 
@@ -85,16 +93,20 @@ cv::Mat regionGrowing(const cv::Mat image, cv::Vec3b color, bool start_from_cent
     int currentClass = 0;
 
     //per definire gli spostamenti nei vicini
-    int dx[8] = { 1, 0, -1, 0, 5, -5, -10, -20};
-    int dy[8] = { 0, 1, 0, -1, 5, -5, 0, 0};
+    int dx[9] = { 1, 0, -1, 0, 5, -5, -10, -20,-35};
+    int dy[9] = { 0, 1, 0, -1, 5, -5, -10, -20, -35};
     if (!start_from_center){
         dx[4] = 0;
         dx[5] = 0;
         dx[6] = 0;
         dx[7] = 0;
+        dx[8] = 0;
 
         dy[4] = 0;
         dy[5] = 0;
+        dy[6] = 0;
+        dy[7] = 0;
+        dy[8] = 0;
     }
     int first_pixel_x = 0;
     int first_pixel_y = 0;
@@ -123,7 +135,7 @@ cv::Mat regionGrowing(const cv::Mat image, cv::Vec3b color, bool start_from_cent
         Pixel pixel = q.front();
         q.pop();
 
-        for (int k = 0; k < 8; ++k) {
+        for (int k = 0; k < 9; ++k) {
             int nx = pixel.x + dx[k];
             int ny = pixel.y + dy[k];
 
@@ -172,6 +184,6 @@ void detectTable(cv::Mat& src, cv::Mat& output){
     cv::Vec3b table_color = mostFrequentColorWithThreshold(cropped_image, 100);
     cv::Mat output_img = regionGrowing(src, table_color, true, false);
     output = output_img;
-    // cv::imshow("Output", output_img);
-    // cv::waitKey(0);
+    cv::imshow("Output", output_img);
+    cv::waitKey(0);
 }
