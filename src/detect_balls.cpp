@@ -59,11 +59,11 @@ int histogram_cal(cv::Mat img){
     double max_entropy = - std::log2(1.0/256.0);
     if (calculateEntropy(hist) >= 0.6*max_entropy){
         //Balls with stripes
-        if(whitePercentage >= 3 && whitePercentage <= 20){
+        if(whitePercentage >= 3 && whitePercentage <= 15){
             return 4;
         }
         //White ball
-        else if (whitePercentage > 20) {
+        else if (whitePercentage > 15) {
             return 1;
         } 
         //balls with solid colors + black one
@@ -78,15 +78,64 @@ int histogram_cal(cv::Mat img){
 
 void detectBalls(cv::Mat& img, cv::Mat& output, int segmentation, std::vector<cv::Vec4f>& classified_balls) {
     cv::Mat src = img.clone();
-    cv::cvtColor(src, src, cv::COLOR_BGR2GRAY);
-    cv::adaptiveThreshold(src, src, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 11, 3);
-    cv::GaussianBlur(src, src, cv::Size(7, 7), 1);
+    //cv::cvtColor(src, src, cv::COLOR_BGR2GRAY);
+    //cv::adaptiveThreshold(src, src, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 11, 3);
+    //cv::GaussianBlur(src, src, cv::Size(3, 3), 1);
+    std::vector<cv::Mat> channels;
+    std::vector<cv::Mat> trash_channels;
+    split(src, channels);
+    split(src, trash_channels); //to have the same dimension as channels
 
-    // cv::imshow("src", src);
-    // cv::waitKey(0);
+    for (int i = 0; i < channels.size(); ++i) {
+        //cv::equalizeHist(channels[i], channels[i]);
+        //cv::threshold(channels[i], channels[i], 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
+        double otsu_thresh_val = cv::threshold(channels[i], trash_channels[i], 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
+        double bias = 0;  
+        double new_thresh_val = otsu_thresh_val - bias;
+        //cv::medianBlur(channels[i], channels[i], 9);
+        cv::GaussianBlur(channels[i], channels[i], cv::Size(5, 5), 1);
+        cv::adaptiveThreshold(channels[i], channels[i], 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 7, 2);
+        //cv::adaptiveThreshold(channels[i], channels[i], 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 11, 3);
+        //cv::threshold(channels[i], channels[i], 50, 255, cv::THRESH_BINARY);
+    }
+    /*    for (int i = 0; i < channels.size(); ++i) {
+        //cv::equalizeHist(channels[i], channels[i]);
+        //cv::threshold(channels[i], channels[i], 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
+        double otsu_thresh_val = cv::threshold(channels[i], trash_channels[i], 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
+        double bias = -10;  
+        double new_thresh_val = otsu_thresh_val - bias;
+        //cv::threshold(channels[i], channels[i], new_thresh_val, 255, cv::THRESH_BINARY);
+        cv::adaptiveThreshold(channels[i], channels[i], 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 11, 3);
+    }*/
+    merge(channels, src);
+    int radius = 2;  // Adjust the radius according to your circular object size
+    cv::Mat structuringElement = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(2*radius, 2*radius));
+    //cv::morphologyEx(src, src, cv::MORPH_OPEN, structuringElement);
+    
+    cv::cvtColor(src, src, cv::COLOR_BGR2GRAY);
+    //cv::medianBlur(src, src, 5);
+    //cv::threshold(src, src, 90, 255, cv::THRESH_BINARY);
+    //cv::adaptiveThreshold(src, src, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 11, 3);
+    cv::GaussianBlur(src, src, cv::Size(7, 7), 1);
+    //cv::erode(src, src, 45);
+    //cv::dilate(src,src, 5);
+    //cv::Canny(src, src, 200, 200, 3, false);
+    cv::imshow("src", src);
+    cv::waitKey(0);
 
     std::vector<cv::Vec3f> circles;
-    cv::HoughCircles(src, circles, cv::HOUGH_GRADIENT, 0.8, 16, 130, 13, 8, 15);
+    cv::HoughCircles(src, circles, cv::HOUGH_GRADIENT, 0.2, 16, 130, 18, 4, 15);
+
+    float avg_radius = 0;
+    for(size_t i = 0; i < circles.size(); i++){
+        avg_radius += circles[i][2];
+    }
+    avg_radius = int(avg_radius/circles.size());
+
+    //update all balls parameters
+    for(size_t i = 0; i < circles.size(); i++){
+        circles[i][2] = avg_radius;
+    }
 
     std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>> white_balls;
     std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>> solid_balls;
