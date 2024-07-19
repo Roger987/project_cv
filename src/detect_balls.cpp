@@ -120,11 +120,11 @@ void detectBalls(cv::Mat& img, cv::Mat& output, int segmentation, std::vector<cv
     //cv::erode(src, src, 45);
     //cv::dilate(src,src, 5);
     //cv::Canny(src, src, 200, 200, 3, false);
-    cv::imshow("src", src);
-    cv::waitKey(0);
+    // cv::imshow("src", src);
+    // cv::waitKey(0);
 
     std::vector<cv::Vec3f> circles;
-    cv::HoughCircles(src, circles, cv::HOUGH_GRADIENT, 0.2, 16, 130, 18, 4, 15);
+    cv::HoughCircles(src, circles, cv::HOUGH_GRADIENT, 1, 16, 130, 20, 4, 15);
 
     float avg_radius = 0;
     for(size_t i = 0; i < circles.size(); i++){
