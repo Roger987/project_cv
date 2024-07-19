@@ -120,12 +120,12 @@ void detectBalls(cv::Mat& img, cv::Mat& output, int segmentation, std::vector<cv
     //cv::erode(src, src, 45);
     //cv::dilate(src,src, 5);
     //cv::Canny(src, src, 200, 200, 3, false);
-    // cv::imshow("src", src);
-    // cv::waitKey(0);
+    cv::imshow("src", src);
+    cv::waitKey(0);
 
     std::vector<cv::Vec3f> circles;
     cv::HoughCircles(src, circles, cv::HOUGH_GRADIENT, 1, 16, 130, 20, 4, 15);
-
+    /*
     float avg_radius = 0;
     for(size_t i = 0; i < circles.size(); i++){
         avg_radius += circles[i][2];
@@ -136,7 +136,7 @@ void detectBalls(cv::Mat& img, cv::Mat& output, int segmentation, std::vector<cv
     for(size_t i = 0; i < circles.size(); i++){
         circles[i][2] = avg_radius;
     }
-
+    */
     std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>> white_balls;
     std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>> solid_balls;
 
@@ -191,12 +191,15 @@ void detectWhiteBall(std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, 
             cv::cvtColor(roi, hsv, cv::COLOR_BGR2HSV);
 
             cv::Mat white_mask;
-            cv::Scalar lower_white = cv::Scalar(0, 0, 168);
-            cv::Scalar upper_white = cv::Scalar(172, 111, 255);
+            cv::Scalar lower_white = cv::Scalar(0, 0, 200);
+            cv::Scalar upper_white = cv::Scalar(180, 100, 255);
             cv::inRange(hsv, lower_white, upper_white, white_mask);
             int whitePixelCount = cv::countNonZero(white_mask);
             int totalPixels = roi.rows * roi.cols;
-            std::get<3>(ball_info) = whitePixelCount;
+            std::get<3>(ball_info) = whitePixelCount*100/totalPixels;
+            cv::imshow("mask", white_mask);
+            cv::waitKey(0);
+            std::cout<< whitePixelCount*100/totalPixels << std::endl;
         }
 
         //put in first position the ball with higher amount of white pixels
