@@ -25,7 +25,7 @@ using namespace std;
 
 int main(int argc, char** argv){   
 
-    if (argc < 2){
+    if (argc < 5){
         std::cout << "A video filename must be provided." << std::endl;
         return -1;
     };
@@ -45,8 +45,9 @@ int main(int argc, char** argv){
     }
 
     // Flags for the output
-    int segmentation = 0;
-    int upvision = 0;
+    int segmentation = std::stoi(argv[2]);
+    int upvision = std::stoi(argv[3]);
+    int evaluate = std::stoi(argv[4]);
 
     // Get the first frame of the video
     Mat first_frame, src, original;
@@ -61,9 +62,6 @@ int main(int argc, char** argv){
     original.copyTo(croppedoriginal,first_frame);
     Mat inverse_mask = regionGrowing(first_frame, Vec3b(0,0,0), false, true);
     cv::threshold(inverse_mask, inverse_mask, 200, 255, cv::THRESH_BINARY_INV);
-
-    // imshow("cropped", inverse_mask);
-    // waitKey(0);
 
     // Gets the corners of the table based on the detected table region
     vector<vector<Point>> corners = tableCorners(croppedoriginal);
@@ -193,18 +191,21 @@ int main(int argc, char** argv){
             output.write(frame);
         }
 
-        if (count_frame == 1) {
-            cout << tokens[2] << endl;
-            generateCoords(coord_balls, "../Dataset/" + tokens[2] + "/bounding_boxes/frame_first.txt");
-            generateMask(coord_balls, tracked_balls_bbx, avg_radius, corners, frame.cols, frame.rows, "../Dataset/" + tokens[2] + "/masks/frame_first_computed.png");
-            meanIoU("../Dataset/" + tokens[2] + "/masks/frame_first_computed.png", "../Dataset/" + tokens[2] + "/masks/frame_first.png");
-            mAP("../Dataset/" + tokens[2] + "/bounding_boxes/frame_first.txt","../Dataset/" + tokens[2] + "/bounding_boxes/frame_first_bbox.txt");
-        } else if (count_frame == video_length - 1){
-            generateCoords(coord_balls, "../Dataset/" + tokens[2] + "/bounding_boxes/frame_last.txt");
-            generateMask(coord_balls, tracked_balls_bbx, avg_radius, corners, frame.cols, frame.rows, "../Dataset/" + tokens[2] + "/masks/frame_last_computed.png");
-            meanIoU("../Dataset/" + tokens[2] + "/masks/frame_last_computed.png", "../Dataset/" + tokens[2] + "/masks/frame_last.png");
-            mAP("../Dataset/" + tokens[2] + "/bounding_boxes/frame_last.txt","../Dataset/" + tokens[2] + "/bounding_boxes/frame_last_bbox.txt");
-            cout << "\n\n" << endl;
+        if (evaluate) {
+            if (count_frame == 1) {
+                cout << tokens[2] << endl;
+                generateCoords(coord_balls, "../Dataset/" + tokens[2] + "/bounding_boxes/frame_first.txt");
+                generateMask(coord_balls, tracked_balls_bbx, avg_radius, corners, frame.cols, frame.rows, "../Dataset/" + tokens[2] + "/masks/frame_first_computed.png");
+                double miou = meanIoU("../Dataset/" + tokens[2] + "/masks/frame_first_computed.png", "../Dataset/" + tokens[2] + "/masks/frame_first.png");
+                double map = mAP("../Dataset/" + tokens[2] + "/bounding_boxes/frame_first.txt","../Dataset/" + tokens[2] + "/bounding_boxes/frame_first_bbox.txt");
+                cout << "First frame evaluation:\n Mean IoU: " << miou << "\n mAP: " << map << endl;
+            } else if (count_frame == video_length - 1){
+                generateCoords(coord_balls, "../Dataset/" + tokens[2] + "/bounding_boxes/frame_last.txt");
+                generateMask(coord_balls, tracked_balls_bbx, avg_radius, corners, frame.cols, frame.rows, "../Dataset/" + tokens[2] + "/masks/frame_last_computed.png");
+                double miou = meanIoU("../Dataset/" + tokens[2] + "/masks/frame_last_computed.png", "../Dataset/" + tokens[2] + "/masks/frame_last.png");
+                double map = mAP("../Dataset/" + tokens[2] + "/bounding_boxes/frame_last.txt","../Dataset/" + tokens[2] + "/bounding_boxes/frame_last_bbox.txt");
+                cout << "Last frame evaluation:\n Mean IoU: " << miou << "\n mAP: " << map << endl;
+            }
         }
 
         count_frame++;

@@ -214,7 +214,7 @@ double mAP(std::string path_predicted, std::string path_ground_truth) {
     for (auto& avg_precision: avg_precisions) {
         mAP_value += avg_precision/classes.size();
     }
-    std::cout << "mAP: " << mAP_value << std::endl;
+    // std::cout << "mAP: " << mAP_value << std::endl;
 
     return mAP_value;
 }
@@ -270,7 +270,7 @@ double meanIoU(std::string path_predicted, std::string path_ground_truth){
         mIou += iou/classes.size();
     }
 
-    std::cout << "mIoU: " << mIou << std::endl;
+    // std::cout << "mIoU: " << mIou << std::endl;
 
     return mIou;
 
