@@ -86,7 +86,7 @@ int main(int argc, char** argv){
     // Detect balls of first frame to initialize multitracking
     original.copyTo(cropped,inverse_mask);
     std::vector<cv::Ptr<cv::Tracker>> multitracker;
-    detectBalls(cropped, original, segmentation, coord_balls);
+    detectAndClassifyBalls(cropped, original, segmentation, coord_balls);
     
     //Calculate average radius
     float avg_radius = 0;
