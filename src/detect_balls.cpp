@@ -2,7 +2,7 @@
 
 #include "detect_balls.hpp"
 
-//Classification's classes:
+//Classes:
 //1 : white ball
 //2 : black ball
 //3 : solid balls
@@ -14,7 +14,7 @@ double calculateEntropy(const cv::Mat& histogram) {
     double entropy = 0.0;
     double total_pixels = cv::sum(histogram)[0];
 
-    for (int i = 0; i < histogram.rows; ++i) {
+    for (int i = 0; i < histogram.rows; ++i){
         double p = histogram.at<float>(i) / total_pixels;
         if (p > 0.0)
             entropy -= p * std::log2(p);
@@ -39,13 +39,13 @@ int histogramCal(cv::Mat img){
 
     //Calculate the histogram of the image
     int histSize = 256;
-    float range[] = { 0, 256 };
-    const float* histRange[] = { range };
+    float range[] = {0, 256};
+    const float* histRange[] = {range};
     cv::Mat hist;
     cv::calcHist( &gray, 1, 0, cv::Mat(), hist, 1, &histSize, histRange, true, false);
 
     int hist_w = 256, hist_h = 400;
-    int bin_w = cvRound( (double) hist_w/histSize );
+    int bin_w = cvRound((double) hist_w/histSize);
 
     cv::Mat histImage( hist_h, hist_w, CV_8UC1, cv::Scalar(0) );
 
@@ -74,12 +74,7 @@ void detectAndClassifyBalls(cv::Mat& img, cv::Mat& output, int segmentation, std
     split(src, thresh_channels);
 
     // We use all three channels to have a more robust analysis
-    for (int i = 0; i < channels.size(); ++i) {
-        double otsu_thresh_val = cv::threshold(channels[i], thresh_channels[i], 0, 255, cv::THRESH_BINARY | cv::THRESH_OTSU);
-        // We introduced a bias parameter that lowers the threshold value found by Otsu because in certain images
-        // some balls were lost. By lowering it, they are not lost anymore
-        double bias = 0;  
-        double new_thresh_val = otsu_thresh_val - bias;
+    for (int i = 0; i < channels.size(); ++i){
         //Apply a gaussin blur to smooth each channel
         cv::GaussianBlur(channels[i], channels[i], cv::Size(5, 5), 1);
         //Another threshold to remove remaining noise
@@ -134,13 +129,11 @@ void detectWhiteBall(std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, 
     cv::Mat roi;
     int roi_size;
     if(!balls.empty()){
-        for (auto& ball_info : balls) {
+        for (auto& ball_info : balls){
             roi = img(std::get<0>(ball_info));
-            
             // For the white ball we work in the HSV space
             cv::Mat hsv;
             cv::cvtColor(roi, hsv, cv::COLOR_BGR2HSV);
-
             cv::Mat white_mask;
             // Upper and lower boundaries of the white color in the HSV color space
             cv::Scalar lower_white = cv::Scalar(0, 0, 200);
@@ -154,7 +147,7 @@ void detectWhiteBall(std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, 
         }
 
         // Put in first position the ball with higher percentage of white pixels
-        std::sort(balls.begin(), balls.end(), [](const std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>& a, const std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>& b) {
+        std::sort(balls.begin(), balls.end(), [](const std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>& a, const std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>& b){
             return std::get<3>(a) > std::get<3>(b);
         });
 
@@ -176,7 +169,6 @@ void detectBlackBall(std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, 
             cv::Mat lab;
             // For the black ball we work in the LAB color space
             cv::cvtColor(roi, lab, cv::COLOR_BGR2Lab);
-
             // The pixels with values outside the boundaries of in range functions are set to zero,
             // the remaining ones to the maximum value
             cv::Mat black_mask;
@@ -188,7 +180,7 @@ void detectBlackBall(std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, 
             std::get<3>(ball_info) = blackPixelCount*100/totalPixels;
         }
 
-        std::sort(balls.begin(), balls.end(), [](const std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>& a, const std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>& b) {
+        std::sort(balls.begin(), balls.end(), [](const std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>& a, const std::tuple<cv::Rect, cv::Point2i, cv::Point2i, int, size_t>& b){
             return std::get<3>(a) > std::get<3>(b);
         });
 
