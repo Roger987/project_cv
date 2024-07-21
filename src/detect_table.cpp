@@ -1,6 +1,6 @@
 //Author: Giulio Capovilla
 
-#include "detect_table.h"
+#include "detect_table.hpp"
 
 //Usefull struct
 struct Pixel {
