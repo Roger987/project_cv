@@ -73,10 +73,8 @@ int main(int argc, char** argv){
     // Gets the contours of the table
     vector<vector<Point>> contours = detectContours(first_frame.rows, first_frame.cols, corners);
 
-    // fillPoly(src, corners, cv::Scalar(49, 124, 76));
     drawContours(src, contours, -1, Scalar(0, 255, 255), 2);
-    // imshow("table", src);
-    // waitKey(0);
+    
 
     // Creates a mask to isolate the table area in order to facilitate the objects (balls) detection
     Mat mask = Mat::zeros(src.size(), CV_8UC3);
@@ -139,7 +137,7 @@ int main(int argc, char** argv){
         Mat cropped_frame = Mat::zeros(frame.size(), CV_8UC3);
         frame.copyTo(cropped_frame,mask);
 
-        if (upvision == 1){
+        if (upvision){
             
             for (size_t i = 0; i < multitracker.size(); i++){
                 multitracker[i]->update(cropped_frame, tracked_balls_bbx[i]);
@@ -155,7 +153,7 @@ int main(int argc, char** argv){
 
         } else {
 
-            if(segmentation == 1)
+            if(segmentation)
                 fillPoly(segmented_frame, corners, cv::Scalar(49, 124, 76));
 
             drawContours(frame, contours, -1, Scalar(0, 255, 255), 2);
