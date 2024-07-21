@@ -1,11 +1,11 @@
-**Usage**
+###Usage
 To run the program, use the following command:
 
 ./main <video_filename> <segmentation_flag> <upvision_flag> <evaluation_flag>
 
 
 
-**Parameters**
+##Parameters
 <video_filename>: The path to the input video file.
 
 <segmentation_flag>: Flag to enable segmentation (1 to enable, 0 to disable).
@@ -20,7 +20,7 @@ To run the program, use the following command:
 
 
 
-**Output**
+###Output
 The processed video will be saved in the ../Dataset/<video_folder>/output.mp4.
 
 *Additional Output*
