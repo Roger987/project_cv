@@ -11,11 +11,11 @@
 #include <sstream>
 #include <string>
 
-#include "detect_table.h"
-#include "table_corners.h"
-#include "detect_contours.h"
+#include "detect_table.hpp"
+#include "table_corners.hpp"
+#include "detect_contours.hpp"
 #include "detect_balls.hpp"
-#include "find_perspective.h"
+#include "find_perspective.hpp"
 #include "draw_table.hpp"
 #include "generate_coords.hpp"
 #include "generate_mask.hpp"

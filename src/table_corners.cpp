@@ -1,6 +1,6 @@
 //Roger De Almeida Matos Junior
 
-#include "table_corners.h"
+#include "table_corners.hpp"
 
 
 double linesDist(cv::Vec2f line1, cv::Vec2f line2){

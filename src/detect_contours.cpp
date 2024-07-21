@@ -1,6 +1,6 @@
 //Roger De Almeida Matos Junior
 
-#include "detect_contours.h"
+#include "detect_contours.hpp"
 
 std::vector<std::vector<cv::Point>> detectContours(int rows, int cols, std::vector<std::vector<cv::Point>> corners){
     
