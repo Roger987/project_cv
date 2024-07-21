@@ -1,18 +1,12 @@
-//#include "functions.h"
+//Author: Giulio Capovilla
+
 #include "detect_table.h"
 
+//Usefull struct
 struct Pixel {
     int x, y;
     Pixel(int x, int y) : x(x), y(y) {}
 };
-
-int colorDistance(const cv::Vec3b& color1, const cv::Vec3b& color2) {
-    return std::sqrt(
-        std::pow(color1[0] - color2[0], 2) +
-        std::pow(color1[1] - color2[1], 2) +
-        std::pow(color1[2] - color2[2], 2)
-    );
-}
 
 cv::Vec3b mostFrequentColorFun(const cv::Mat& image) { 
 //Function used to find the most frequent color in the central area of the image - the table center
@@ -20,11 +14,11 @@ cv::Vec3b mostFrequentColorFun(const cv::Mat& image) {
         [](const cv::Vec3b& a, const cv::Vec3b& b) -> bool {
             return a.val> b.val;
         }
-    );
+    );//Create ordered color dictionary
 
     for (int y = 0; y < image.rows; ++y) {
         for (int x = 0; x < image.cols; ++x) {
-            cv::Vec3b color = image.at<cv::Vec3b>(y, x);
+            cv::Vec3b color = image.at<cv::Vec3b>(y, x);//Check every pixel color and add it to the color dictionary
             bool found = false;
             for (auto& pair : color_count) {
                 if (pair.first == color) {
@@ -41,7 +35,7 @@ cv::Vec3b mostFrequentColorFun(const cv::Mat& image) {
     }
 
     cv::Vec3b mostFrequentColor;
-    int maxCount = 0;
+    int maxCount = 0; //Find which color is the most frequent
     for (const auto& pair : color_count) {
         if (pair.second > maxCount) {
             maxCount = pair.second;
@@ -73,17 +67,17 @@ cv::Mat process_general(cv::Mat img) {
 
 cv::Mat regionGrowing(const cv::Mat image, cv::Vec3b color, bool start_from_center, bool color_region) {
 //Apply a single region growing starting from the center of the image (where the table is present)
-//Used also to calculate the inverse mask, it removes hands from the table
+//Used also to calculate the inverse mask, it removes hands and  external objects from the table
     int rows = image.rows;
     int cols = image.cols;
-    std::vector<std::vector<bool>> visited(rows, std::vector<bool>(cols, false));
-    std::vector<std::vector<int>> classes(rows, std::vector<int>(cols, -1));
+    std::vector<std::vector<bool>> visited(rows, std::vector<bool>(cols, false));//Check if a pixel has been visited yet
+    std::vector<std::vector<int>> classes(rows, std::vector<int>(cols, -1));//Set the class of all pixels to -1. Region growing pixels will be set to 0
 
     int region_class = 0;
 
     int dx[9] = { 1, 0, -1, 0, 5, -5, -20, 35, -35}; //Higher values used to "jump" in same color clusters that are not togheter with the table center cluster
     int dy[9] = { 0, 1, 0, -1, 5, -5, -20, 35, -35};
-    if (!start_from_center){ 
+    if (!start_from_center){ //Used to create the inverse_mask, it stops the juming feature
         dx[4] = 0;
         dx[5] = 0;
         dx[6] = 0;
@@ -115,7 +109,7 @@ cv::Mat regionGrowing(const cv::Mat image, cv::Vec3b color, bool start_from_cent
     visited[first_pixel_y][first_pixel_x] = true;
     classes[first_pixel_y][first_pixel_x] = region_class;
 
-    while (!q.empty()) {//Region growing creation
+    while (!q.empty()) {//Region growing algorithm
         Pixel pixel = q.front();
         q.pop();
 
@@ -154,12 +148,12 @@ cv::Mat regionGrowing(const cv::Mat image, cv::Vec3b color, bool start_from_cent
 }
 
 void detectTable(cv::Mat& src, cv::Mat& output){
-    src = process_general(src);
+    src = process_general(src); //Apply the binary filter on input channels
     int y_center = int(src.rows/2); 
     int x_center = int(src.cols/2);
     cv::Rect roi(x_center, y_center, 80, 80);
-    cv::Mat cropped_image = src(roi);
-    cv::Vec3b table_color = mostFrequentColorFun(cropped_image);
-    cv::Mat output_img = regionGrowing(src, table_color, true, false);
+    cv::Mat cropped_image = src(roi);//Create the cropped image of the image center
+    cv::Vec3b table_color = mostFrequentColorFun(cropped_image);//Find the most frequent color of the 80x80 square
+    cv::Mat output_img = regionGrowing(src, table_color, true, false);//Call for region growing, it creates the mask found
     output = output_img;
 }
