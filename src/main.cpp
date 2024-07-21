@@ -185,7 +185,7 @@ int main(int argc, char** argv){
 
         }
 
-        if (segmentation) {
+        if (segmentation && !upvision) {
             output.write(segmented_frame);
         } else {
             output.write(frame);
