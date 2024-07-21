@@ -166,9 +166,6 @@ void detectBlackBall(std::vector<std::tuple<cv::Rect, cv::Point2i, cv::Point2i, 
     if(!balls.empty()){
         for (auto& ball_info : balls){
             cv::Mat roi = img(std::get<0>(ball_info));
-            cv::Mat lab;
-            // For the black ball we work in the LAB color space
-            cv::cvtColor(roi, lab, cv::COLOR_BGR2Lab);
             // The pixels with values outside the boundaries of in range functions are set to zero,
             // the remaining ones to the maximum value
             cv::Mat black_mask;
