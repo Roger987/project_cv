@@ -1,5 +1,5 @@
-#ifndef TABLE_CONTOURS_H
-#define TABLE_CONTOURS_H
+#ifndef TABLE_CONTOURS_HPP
+#define TABLE_CONTOURS_HPP
 
 #include <opencv2/opencv.hpp>
 

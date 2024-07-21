@@ -1,5 +1,5 @@
-#ifndef DETECT_TABLE_H
-#define DETECT_TABLE_H
+#ifndef DETECT_TABLE_HPP
+#define DETECT_TABLE_HPP
 
 #include <opencv2/opencv.hpp>
 

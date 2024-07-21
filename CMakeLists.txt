@@ -14,7 +14,7 @@ add_executable(main src/main.cpp
                     src/detect_table.cpp 
                     src/table_corners.cpp 
                     src/detect_contours.cpp 
-                    src/detect_balls.cpp 
+                    src/detect_and_classify_balls.cpp 
                     src/find_perspective.cpp
                     src/draw_table.cpp
                     src/generate_coords.cpp

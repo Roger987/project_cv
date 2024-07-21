@@ -1,5 +1,5 @@
-#ifndef DETECT_BALLS_H
-#define DETECT_BALLS_H
+#ifndef DETECT_BALLS_HPP
+#define DETECT_BALLS_HPP
 
 #include <opencv2/opencv.hpp>
 

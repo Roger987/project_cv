@@ -1,3 +1,5 @@
+//Roger De Almeida Matos Junior
+
 #include "table_corners.h"
 
 
@@ -85,18 +87,6 @@ std::vector<std::vector<cv::Point>> tableCorners(cv::Mat& src){
     linesPruned.push_back(lines[0]);
     float delta = 50;
     cv::Point center(src.cols/2, src.rows/2);
-/*
-    for (size_t i = 0; i < lines.size(); i++) {
-        float rho = lines[i][0], theta = lines[i][1];
-        double a = cos(theta), b = sin(theta);
-        double x0 = a * rho, y0 = b * rho;
-        cv::Point pt1(cvRound(x0 + 1000 * (-b)), cvRound(y0 + 1000 * (a)));
-        cv::Point pt2(cvRound(x0 - 1000 * (-b)), cvRound(y0 - 1000 * (a)));
-        cv::line(copy_src, pt1, pt2, cv::Scalar(0, 0, 255), 3, cv::LINE_AA);
-    }
-*/
-    //cv::imshow("lines", copy_src);
-    //cv::waitKey(0);
     for (int i = 1; i < lines.size(); i++) {
         cv::Vec2f current_line = lines[i];
         bool flag = true;
@@ -123,7 +113,6 @@ std::vector<std::vector<cv::Point>> tableCorners(cv::Mat& src){
             cv::Point intersec = findIntersection(linesPruned[i], linesPruned[j]);
             if (intersec.x >= 0 && intersec.y >= 0 && intersec.x <= src.cols && intersec.y <= src.rows){
                 intersections.push_back(intersec);
-                //std::cout << intersec.x << " " << intersec.y << std::endl;
             }
         }
     }
@@ -169,7 +158,4 @@ std::vector<std::vector<cv::Point>> tableCorners(cv::Mat& src){
         sortPointsCounterClockwise(intersections);
         return {intersections};
     }
-
-    // return {intersections};
-
 }

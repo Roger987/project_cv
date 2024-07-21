@@ -1,8 +1,6 @@
 #ifndef DETECT_AND_CLASSIFY_BALLS_HPP
 #define DETECT_AND_CLASSIFY_BALLS_HPP
 
-//Author: Francesco Stella
-
 #include <opencv2/opencv.hpp>
 #include <opencv2/video/tracking.hpp>
 

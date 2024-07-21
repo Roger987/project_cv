@@ -21,7 +21,7 @@ To run the program, use the following command:
 *Example*
 
 ```bash
-./table_tennis_tracking ../Dataset/video.mp4 1 0 1
+./main ../Dataset/game1_clip1/game1_clip1.mp4 1 0 1
 ```
 
 

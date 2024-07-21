@@ -1,3 +1,5 @@
+//Roger De Almeida Matos Junior
+
 #include "draw_table.hpp"
 
 double pointsDist(cv::Point2f pt1, cv::Point2f pt2){
@@ -23,7 +25,6 @@ cv::Mat drawTable(std::vector<cv::Rect> tracked_balls_bbx, std::vector<cv::Vec4f
         trajectories[i].push_back(transf_coord_balls[i]);
 
         for (size_t j = 1; j < trajectories[i].size(); j++){
-            // cv::circle(table2d, trajectories[i][j], 2, cv::Scalar(0, 0, 0), -1);
             if (j % 2 == 0) {
                 cv::line(table2d, trajectories[i][j-1], trajectories[i][j], cv::Scalar(0, 0, 0), 2);
             }

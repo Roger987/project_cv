@@ -1,3 +1,5 @@
+//Francesco Stella
+
 #include "generate_mask.hpp"
 #include <fstream>
 #include <iostream>

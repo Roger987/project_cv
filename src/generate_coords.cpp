@@ -1,3 +1,5 @@
+//Giulio Capovilla
+
 #include "generate_coords.hpp"
 #include <fstream>
 #include <iostream>

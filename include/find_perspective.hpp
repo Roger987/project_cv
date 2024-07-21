@@ -1,5 +1,5 @@
-#ifndef FIND_PERSPECTIVE_H
-#define FIND_PERSPECTIVE_H
+#ifndef FIND_PERSPECTIVE_HPP
+#define FIND_PERSPECTIVE_HPP
 
 #include <opencv2/opencv.hpp>
 

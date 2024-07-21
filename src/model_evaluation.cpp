@@ -1,3 +1,5 @@
+//Roger De Almeida Matos Junior
+
 #include "model_evaluation.hpp"
 
 double getIoU(cv::Vec4f ground_truth, cv::Vec4f predicted){
@@ -86,9 +88,7 @@ void evaluate_one_frame(std::string path_true, std::string path_predicted, std::
 
             }
 
-            // std::cout << best_iou << std::endl;
             if (best_iou >= 0.5) {
-                // std::cout << ground_truth_class << " " << current_class << std::endl;
                 if (ground_truth_class == current_class) {
                     evaluations.push_back({1,static_cast<float>(best_iou)});
                 } else {
@@ -119,7 +119,6 @@ void evaluate_one_frame(std::string path_true, std::string path_predicted, std::
 
             }
 
-            // std::cout << best_iou << std::endl;
             if (best_iou < 0.5) {
                 evaluations.push_back({3,static_cast<float>(best_iou)});
             }
@@ -131,19 +130,6 @@ void evaluate_one_frame(std::string path_true, std::string path_predicted, std::
 }
 
 double mAP(std::string path_predicted, std::string path_ground_truth) {
-
-    // std::string filename = "../docs/paths_localization.txt";
-    // std::ifstream file(filename);
-    // std::vector<std::string> paths;
-
-    // std::string line;
-
-    // while (getline(file, line)) {
-    //     std::istringstream iss(line);
-    //     std::string path;
-    //     iss >> path;
-    //     paths.push_back(path);
-    // }
 
     std::vector<int> classes = {1,2,3,4};
     std::vector<double> avg_precisions;
@@ -175,7 +161,6 @@ double mAP(std::string path_predicted, std::string path_ground_truth) {
         float fn = 0.0;    
         
         for (size_t i = 0; i < evaluations.size(); i ++) {
-            // std::cout << evaluations[i] << std::endl;
             if (evaluations[i][0] == 1) {
                 tp++;
             } else if (evaluations[i][0] == 2){
@@ -209,12 +194,10 @@ double mAP(std::string path_predicted, std::string path_ground_truth) {
 
     }
 
-    // std::cout << "AVERAGE PRECISION: " << avg_precisions[0] << " " << avg_precisions[1] << " " << avg_precisions[2] << " " << avg_precisions[3] << std::endl;
     double mAP_value = 0.0;
     for (auto& avg_precision: avg_precisions) {
         mAP_value += avg_precision/classes.size();
     }
-    // std::cout << "mAP: " << mAP_value << std::endl;
 
     return mAP_value;
 }
@@ -266,11 +249,8 @@ double meanIoU(std::string path_predicted, std::string path_ground_truth){
 
     double mIou = 0.0;
     for (auto& iou: iou_per_class){
-        // std::cout << iou << std::endl;
         mIou += iou/classes.size();
     }
-
-    // std::cout << "mIoU: " << mIou << std::endl;
 
     return mIou;
 
